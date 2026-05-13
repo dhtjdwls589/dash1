@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>설정</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #eef2f7;
+            color: #222;
+        }
+
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 240px;
+            background: #111827;
+            color: white;
+            padding: 24px;
+        }
+
+        .sidebar-title {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 32px;
+        }
+
+        .sidebar-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .sidebar-item {
+            display: block;
+            padding: 14px 16px;
+            border-radius: 10px;
+            color: #d1d5db;
+            text-decoration: none;
+        }
+
+        .sidebar-item:hover,
+        .sidebar-item.active {
+            background: #374151;
+            color: white;
+        }
+
+        .main {
+            flex: 1;
+            padding: 32px;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 24px;
+        }
+
+        .section {
+            background: white;
+            border-radius: 18px;
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+            max-width: 800px;
+        }
+
+        .setting-row {
+            padding: 18px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .setting-row:last-child {
+            border-bottom: none;
+        }
+
+        .setting-title {
+            font-weight: bold;
+            margin-bottom: 6px;
+        }
+
+        .setting-desc {
+            color: #64748b;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+
+<body>
+<div class="layout">
+
+    <div class="sidebar">
+        <div class="sidebar-title">📊 Dashboard</div>
+
+        <div class="sidebar-menu">
+            <a href="/" class="sidebar-item">📊 대시보드</a>
+            <a href="/projects/" class="sidebar-item">📁 프로젝트</a>
+            <a href="/tasks/" class="sidebar-item">✅ 작업</a>
+            <a href="/stats/" class="sidebar-item">📈 통계</a>
+            <a href="/settings/" class="sidebar-item active">⚙ 설정</a>
+        </div>
+    </div>
+
+    <div class="main">
+        <div class="page-title">설정</div>
+
+        <div class="section">
+            <div class="setting-row">
+                <div class="setting-title">프로젝트 관리</div>
+                <div class="setting-desc">
+                    현재 프로젝트 생성은 Django 관리자 페이지에서 할 수 있습니다.
+                </div>
+            </div>
+
+            <div class="setting-row">
+                <div class="setting-title">작업 상태</div>
+                <div class="setting-desc">
+                    작업 상태는 예정, 진행 중, 완료로 구성되어 있습니다.
+                </div>
+            </div>
+
+            <div class="setting-row">
+                <div class="setting-title">데이터 저장</div>
+                <div class="setting-desc">
+                    현재 데이터는 SQLite 데이터베이스에 저장됩니다.
+                </div>
+            </div>
+
+            <div class="setting-row">
+                <div class="setting-title">외부 공유</div>
+                <div class="setting-desc">
+                    외부 접속을 위해서는 Render, Railway 같은 배포 서비스 연결이 필요합니다.
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

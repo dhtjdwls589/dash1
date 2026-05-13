@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>프로젝트</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #eef2f7;
+            color: #222;
+        }
+
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 240px;
+            background: #111827;
+            color: white;
+            padding: 24px;
+        }
+
+        .sidebar-title {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 32px;
+        }
+
+        .sidebar-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .sidebar-item {
+            display: block;
+            padding: 14px 16px;
+            border-radius: 10px;
+            color: #d1d5db;
+            text-decoration: none;
+        }
+
+        .sidebar-item:hover,
+        .sidebar-item.active {
+            background: #374151;
+            color: white;
+        }
+
+        .main {
+            flex: 1;
+            padding: 32px;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 24px;
+        }
+
+        .section {
+            background: white;
+            border-radius: 18px;
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+            margin-bottom: 24px;
+        }
+
+        .project-form {
+            display: grid;
+            grid-template-columns: 1fr 120px;
+            gap: 14px;
+            align-items: end;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-size: 14px;
+        }
+
+        .form-input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 12px 14px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 15px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 12px 16px;
+            border: none;
+            border-radius: 10px;
+            background: #4f46e5;
+            color: white;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .submit-btn:hover {
+            background: #4338ca;
+        }
+
+        .project-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+        }
+
+        .project-card {
+            background: white;
+            border-radius: 18px;
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+        }
+
+        .project-name {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 14px;
+        }
+
+        .project-meta {
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+
+        .progress-bg {
+            width: 100%;
+            height: 10px;
+            background: #e9ecef;
+            border-radius: 20px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-bar {
+            height: 10px;
+            background: #4f46e5;
+        }
+
+        .view-btn {
+            display: inline-block;
+            margin-top: 18px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            background: #eef2ff;
+            color: #4338ca;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .empty {
+            background: white;
+            padding: 28px;
+            border-radius: 18px;
+            color: #64748b;
+        }
+
+        @media (max-width: 900px) {
+
+            .layout {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: auto;
+            }
+
+            .project-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .project-form {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="layout">
+
+    <div class="sidebar">
+
+        <div class="sidebar-title">
+            📊 Dashboard
+        </div>
+
+        <div class="sidebar-menu">
+
+            <a href="/" class="sidebar-item">
+                📊 대시보드
+            </a>
+
+            <a href="/projects/" class="sidebar-item active">
+                📁 프로젝트
+            </a>
+
+            <a href="/tasks/" class="sidebar-item">
+                ✅ 작업
+            </a>
+
+            <a href="/stats/" class="sidebar-item">
+                📈 통계
+            </a>
+
+            <a href="/settings/" class="sidebar-item">
+                ⚙ 설정
+            </a>
+
+        </div>
+
+    </div>
+
+    <div class="main">
+
+        <div class="page-title">
+            프로젝트
+        </div>
+
+        <div class="section">
+
+            <h2>프로젝트 추가</h2>
+
+            <form method="post" class="project-form">
+
+                {% csrf_token %}
+
+                <div>
+                    <label>프로젝트 이름</label>
+                    {{ form.name }}
+                </div>
+
+                <div>
+                    <button type="submit" class="submit-btn">
+                        추가
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+
+        {% if project_cards %}
+
+        <div class="project-grid">
+
+            {% for item in project_cards %}
+
+            <div class="project-card">
+
+                <div class="project-name">
+                    📁 {{ item.project.name }}
+                </div>
+
+                <div class="project-meta">
+                    전체 작업 {{ item.total }}개 · 완료 {{ item.completed }}개
+                </div>
+
+                <div>
+                    진행률 {{ item.average_progress }}%
+                </div>
+
+                <div class="progress-bg">
+                    <div class="progress-bar"
+                         style="width: {{ item.average_progress }}%;">
+                    </div>
+                </div>
+
+                <a href="/?project={{ item.project.id }}"
+                   class="view-btn">
+                    프로젝트 보기
+                </a>
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+        {% else %}
+
+        <div class="empty">
+            아직 프로젝트가 없습니다.
+        </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+</body>
+</html>

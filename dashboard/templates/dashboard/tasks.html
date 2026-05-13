@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>작업</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #eef2f7;
+            color: #222;
+        }
+
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 240px;
+            background: #111827;
+            color: white;
+            padding: 24px;
+        }
+
+        .sidebar-title {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 32px;
+        }
+
+        .sidebar-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .sidebar-item {
+            display: block;
+            padding: 14px 16px;
+            border-radius: 10px;
+            color: #d1d5db;
+            text-decoration: none;
+        }
+
+        .sidebar-item:hover,
+        .sidebar-item.active {
+            background: #374151;
+            color: white;
+        }
+
+        .main {
+            flex: 1;
+            padding: 32px;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 24px;
+        }
+
+        .section {
+            background: white;
+            border-radius: 18px;
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+        }
+
+        .search-form {
+            display: grid;
+            grid-template-columns: 1fr 110px 110px;
+            gap: 12px;
+            margin-bottom: 18px;
+            align-items: end;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 12px 14px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 15px;
+        }
+
+        .search-btn {
+            padding: 12px 16px;
+            border: none;
+            border-radius: 10px;
+            background: #111827;
+            color: white;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .reset-btn {
+            padding: 12px 16px;
+            border-radius: 10px;
+            background: #e5e7eb;
+            color: #111827;
+            font-size: 15px;
+            font-weight: bold;
+            text-decoration: none;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        .table-scroll {
+            max-height: 650px;
+            overflow: auto;
+            border-radius: 12px;
+        }
+
+        table {
+            width: 100%;
+            min-width: 1100px;
+            border-collapse: collapse;
+        }
+
+        th {
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 5;
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+            color: #555;
+        }
+
+        td {
+            padding: 14px 12px;
+            border-bottom: 1px solid #eee;
+            vertical-align: top;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .badge-done {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .badge-progress {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .badge-wait {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        .memo {
+            max-width: 320px;
+            white-space: pre-wrap;
+            color: #475569;
+            font-size: 14px;
+        }
+
+        .edit-btn,
+        .delete-btn {
+            display: inline-block;
+            padding: 7px 10px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: bold;
+            margin-right: 6px;
+            margin-bottom: 6px;
+        }
+
+        .edit-btn {
+            background: #eef2ff;
+            color: #4338ca;
+        }
+
+        .delete-btn {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        @media (max-width: 900px) {
+            .layout {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: auto;
+            }
+
+            .search-form {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="layout">
+
+    <div class="sidebar">
+        <div class="sidebar-title">📊 Dashboard</div>
+
+        <div class="sidebar-menu">
+            <a href="/" class="sidebar-item">📊 대시보드</a>
+            <a href="/projects/" class="sidebar-item">📁 프로젝트</a>
+            <a href="/tasks/" class="sidebar-item active">✅ 작업</a>
+            <a href="/stats/" class="sidebar-item">📈 통계</a>
+            <a href="/settings/" class="sidebar-item">⚙ 설정</a>
+        </div>
+    </div>
+
+    <div class="main">
+        <div class="page-title">작업 전체 목록</div>
+
+        <div class="section">
+            <form method="get" class="search-form">
+                <div>
+                    <label>검색</label>
+                    <input
+                        type="text"
+                        name="q"
+                        class="form-input"
+                        placeholder="작업명, 메모, 프로젝트명 검색"
+                        value="{{ search_query }}"
+                    >
+                </div>
+
+                <button type="submit" class="search-btn">검색</button>
+                <a href="/tasks/" class="reset-btn">초기화</a>
+            </form>
+
+            <p>총 {{ total_tasks }}개의 작업이 있습니다.</p>
+
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>프로젝트</th>
+                            <th>작업명</th>
+                            <th>상태</th>
+                            <th>진행률</th>
+                            <th>메모</th>
+                            <th>관리</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for task in tasks %}
+                        <tr>
+                            <td>
+                                {% if task.project %}
+                                    {{ task.project.name }}
+                                {% else %}
+                                    미지정
+                                {% endif %}
+                            </td>
+
+                            <td>{{ task.name }}</td>
+
+                            <td>
+                                {% if task.status == "완료" %}
+                                    <span class="badge badge-done">{{ task.status }}</span>
+                                {% elif task.status == "진행 중" %}
+                                    <span class="badge badge-progress">{{ task.status }}</span>
+                                {% else %}
+                                    <span class="badge badge-wait">{{ task.status }}</span>
+                                {% endif %}
+                            </td>
+
+                            <td>{{ task.progress }}%</td>
+
+                            <td class="memo">
+                                {% if task.memo %}
+                                    {{ task.memo }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                <a href="{% url 'edit_task' task.id %}" class="edit-btn">수정</a>
+                                <a href="{% url 'delete_task' task.id %}" class="delete-btn">삭제</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6">작업이 없습니다.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>
