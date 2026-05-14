@@ -1,15 +1,14 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from django.db.models import Q
-from .models import Task, Project, Comment
-from .forms import TaskForm, ProjectForm, CommentForm
+
 from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 
-from .models import Task, Project
-from .forms import TaskForm, ProjectForm
+from .models import Task, Project, Comment
+from .forms import TaskForm, ProjectForm, CommentForm
 
 
 def staff_required(user):
@@ -22,27 +21,16 @@ def login_page(request):
         return redirect("dashboard_index")
 
     if request.method == "POST":
-        form = AuthenticationForm(
-            request,
-            data=request.POST
-        )
+        form = AuthenticationForm(request, data=request.POST)
 
         if form.is_valid():
             user = form.get_user()
             login(request, user)
-
             return redirect("dashboard_index")
-
     else:
         form = AuthenticationForm()
 
-    return render(
-        request,
-        "dashboard/login.html",
-        {
-            "form": form,
-        }
-    )
+    return render(request, "dashboard/login.html", {"form": form})
 
 
 def register_page(request):
@@ -54,31 +42,20 @@ def register_page(request):
 
         if form.is_valid():
             user = form.save()
-
-            # 일반 회원으로 가입
             user.is_staff = False
             user.is_superuser = False
             user.save()
 
             login(request, user)
-
             return redirect("dashboard_index")
-
     else:
         form = UserCreationForm()
 
-    return render(
-        request,
-        "dashboard/register.html",
-        {
-            "form": form,
-        }
-    )
+    return render(request, "dashboard/register.html", {"form": form})
 
 
 def logout_page(request):
     logout(request)
-
     return redirect("login")
 
 
@@ -104,16 +81,11 @@ def index(request):
     if request.method == "POST":
         staff_required(request.user)
 
-        form = TaskForm(
-            request.POST,
-            request.FILES
-        )
+        form = TaskForm(request.POST, request.FILES)
 
         if form.is_valid():
             form.save()
-
             return redirect("dashboard_index")
-
     else:
         form = TaskForm()
 
@@ -133,16 +105,13 @@ def index(request):
             "tasks": tasks,
             "projects": projects,
             "form": form,
-
             "selected_project_id": selected_project_id,
             "search_query": search_query,
-
             "total_tasks": total_tasks,
             "completed_tasks": completed_tasks,
             "in_progress_tasks": in_progress_tasks,
             "todo_tasks_count": todo_tasks_count,
             "average_progress": average_progress,
-
             "todo_tasks": tasks.filter(status="예정"),
             "progress_tasks": tasks.filter(status="진행 중"),
             "done_tasks": tasks.filter(status="완료"),
@@ -159,9 +128,7 @@ def projects_page(request):
 
         if form.is_valid():
             form.save()
-
             return redirect("projects_page")
-
     else:
         form = ProjectForm()
 
@@ -171,7 +138,6 @@ def projects_page(request):
 
     for project in projects:
         tasks = project.tasks.all()
-
         total = tasks.count()
         completed = tasks.filter(status="완료").count()
 
@@ -250,21 +216,14 @@ def stats_page(request):
 
 @login_required
 def settings_page(request):
-    return render(
-        request,
-        "dashboard/settings.html"
-    )
+    return render(request, "dashboard/settings.html")
 
 
 @login_required
 def delete_task(request, task_id):
     staff_required(request.user)
 
-    task = get_object_or_404(
-        Task,
-        id=task_id
-    )
-
+    task = get_object_or_404(Task, id=task_id)
     task.delete()
 
     return redirect("dashboard_index")
@@ -274,27 +233,16 @@ def delete_task(request, task_id):
 def edit_task(request, task_id):
     staff_required(request.user)
 
-    task = get_object_or_404(
-        Task,
-        id=task_id
-    )
+    task = get_object_or_404(Task, id=task_id)
 
     if request.method == "POST":
-        form = TaskForm(
-            request.POST,
-            request.FILES,
-            instance=task
-        )
+        form = TaskForm(request.POST, request.FILES, instance=task)
 
         if form.is_valid():
             form.save()
-
             return redirect("dashboard_index")
-
     else:
-        form = TaskForm(
-            instance=task
-        )
+        form = TaskForm(instance=task)
 
     return render(
         request,
@@ -310,34 +258,34 @@ def edit_task(request, task_id):
 def update_task_status(request, task_id, status):
     staff_required(request.user)
 
-    task = get_object_or_404(
-        Task,
-        id=task_id
-    )
-
+    task = get_object_or_404(Task, id=task_id)
     task.status = status
     task.save()
 
     return HttpResponse("OK")
+
+
 @login_required
 def add_comment(request, task_id):
-
-    task = get_object_or_404(
-        Task,
-        id=task_id
-    )
+    task = get_object_or_404(Task, id=task_id)
 
     if request.method == "POST":
-
         form = CommentForm(request.POST)
 
         if form.is_valid():
-
             comment = form.save(commit=False)
-
             comment.task = task
             comment.author = request.user
-
             comment.save()
+
+    return redirect("dashboard_index")
+
+
+@login_required
+def delete_comment(request, comment_id):
+    staff_required(request.user)
+
+    comment = get_object_or_404(Comment, id=comment_id)
+    comment.delete()
 
     return redirect("dashboard_index")
