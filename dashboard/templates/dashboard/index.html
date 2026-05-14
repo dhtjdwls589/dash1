@@ -589,19 +589,44 @@
         </div>
 
         <div class="sidebar-menu">
-            <a href="/" class="sidebar-item active">📊 대시보드</a>
-            <a href="/projects/" class="sidebar-item">📁 프로젝트</a>
-            <a href="/tasks/" class="sidebar-item">✅ 작업 리스트</a>
-            <a href="/stats/" class="sidebar-item">📈 통계</a>
-            <a href="/settings/" class="sidebar-item">⚙ 설정</a>
 
-            {% if request.user.is_superuser %}
-            <a href="/admin/" class="sidebar-item">👑 관리자 페이지</a>
+            <a href="/" class="sidebar-item active">
+                📊 대시보드
+             </a>
+
+            <a href="/projects/" class="sidebar-item">
+                📁 프로젝트
+            </a>
+
+             <a href="/tasks/" class="sidebar-item">
+                 ✅ 작업 리스트
+            </a>
+
+            <a href="/stats/" class="sidebar-item">
+                📈 통계
+             </a>
+
+             <a href="/messages/" class="sidebar-item">
+                💬 메신저
+             </a>
+
+            <a href="/settings/" class="sidebar-item">
+                 ⚙ 설정
+            </a>
+
+           {% if request.user.is_superuser %}
+            <a href="/admin/" class="sidebar-item">
+                 👑 관리자 페이지
+             </a>
             {% endif %}
 
-            <a href="{% url 'logout' %}" class="sidebar-item logout-btn">
+            <a
+                href="{% url 'logout' %}"
+                class="sidebar-item logout-btn"
+            >
                 🚪 로그아웃
-            </a>
+             </a>
+
         </div>
     </aside>
 

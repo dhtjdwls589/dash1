@@ -26,6 +26,7 @@ def login_page(request):
 
         if form.is_valid():
             user = form.get_user()
+
             login(request, user)
 
             return redirect("dashboard_index")
@@ -85,10 +86,14 @@ def index(request):
     selected_project_id = request.GET.get("project")
     search_query = request.GET.get("q", "").strip()
 
-    tasks = Task.objects.select_related("project").all().order_by("-created_at")
+    tasks = Task.objects.select_related(
+        "project"
+    ).all().order_by("-created_at")
 
     if selected_project_id:
-        tasks = tasks.filter(project_id=selected_project_id)
+        tasks = tasks.filter(
+            project_id=selected_project_id
+        )
 
     if search_query:
         tasks = tasks.filter(
@@ -100,7 +105,10 @@ def index(request):
     if request.method == "POST":
         staff_required(request.user)
 
-        form = TaskForm(request.POST, request.FILES)
+        form = TaskForm(
+            request.POST,
+            request.FILES
+        )
 
         if form.is_valid():
             form.save()
@@ -111,9 +119,18 @@ def index(request):
         form = TaskForm()
 
     total_tasks = tasks.count()
-    completed_tasks = tasks.filter(status="완료").count()
-    in_progress_tasks = tasks.filter(status="진행 중").count()
-    todo_tasks_count = tasks.filter(status="예정").count()
+
+    completed_tasks = tasks.filter(
+        status="완료"
+    ).count()
+
+    in_progress_tasks = tasks.filter(
+        status="진행 중"
+    ).count()
+
+    todo_tasks_count = tasks.filter(
+        status="예정"
+    ).count()
 
     average_progress = int(
         sum(task.progress for task in tasks) / total_tasks
@@ -155,7 +172,9 @@ def projects_page(request):
     else:
         form = ProjectForm()
 
-    projects = Project.objects.all().order_by("-created_at")
+    projects = Project.objects.all().order_by(
+        "-created_at"
+    )
 
     project_cards = []
 
@@ -163,7 +182,10 @@ def projects_page(request):
         tasks = project.tasks.all()
 
         total = tasks.count()
-        completed = tasks.filter(status="완료").count()
+
+        completed = tasks.filter(
+            status="완료"
+        ).count()
 
         average_progress = int(
             sum(task.progress for task in tasks) / total
@@ -188,9 +210,14 @@ def projects_page(request):
 
 @login_required
 def tasks_page(request):
-    search_query = request.GET.get("q", "").strip()
+    search_query = request.GET.get(
+        "q",
+        ""
+    ).strip()
 
-    tasks = Task.objects.select_related("project").all().order_by("-created_at")
+    tasks = Task.objects.select_related(
+        "project"
+    ).all().order_by("-created_at")
 
     if search_query:
         tasks = tasks.filter(
@@ -213,12 +240,22 @@ def tasks_page(request):
 @login_required
 def stats_page(request):
     tasks = Task.objects.all()
+
     projects = Project.objects.all()
 
     total_tasks = tasks.count()
-    completed_tasks = tasks.filter(status="완료").count()
-    in_progress_tasks = tasks.filter(status="진행 중").count()
-    todo_tasks_count = tasks.filter(status="예정").count()
+
+    completed_tasks = tasks.filter(
+        status="완료"
+    ).count()
+
+    in_progress_tasks = tasks.filter(
+        status="진행 중"
+    ).count()
+
+    todo_tasks_count = tasks.filter(
+        status="예정"
+    ).count()
 
     average_progress = int(
         sum(task.progress for task in tasks) / total_tasks
@@ -248,21 +285,29 @@ def settings_page(request):
 
 @login_required
 def messages_page(request):
-    users = User.objects.exclude(
+
+    first_user = User.objects.exclude(
         id=request.user.id
-    ).order_by("username")
+    ).first()
+
+    if first_user:
+        return redirect(
+            "direct_chat_page",
+            user_id=first_user.id
+        )
 
     return render(
         request,
         "dashboard/messages.html",
         {
-            "users": users,
+            "users": [],
         }
     )
 
 
 @login_required
 def direct_chat_page(request, user_id):
+
     other_user = get_object_or_404(
         User,
         id=user_id
@@ -290,6 +335,7 @@ def direct_chat_page(request, user_id):
 
             message.sender = request.user
             message.receiver = other_user
+
             message.save()
 
             return redirect(
@@ -376,6 +422,7 @@ def update_task_status(request, task_id, status):
     )
 
     task.status = status
+
     task.save()
 
     return HttpResponse("OK")
@@ -383,6 +430,7 @@ def update_task_status(request, task_id, status):
 
 @login_required
 def add_comment(request, task_id):
+
     task = get_object_or_404(
         Task,
         id=task_id
@@ -396,6 +444,7 @@ def add_comment(request, task_id):
 
             comment.task = task
             comment.author = request.user
+
             comment.save()
 
     return redirect("dashboard_index")
@@ -403,6 +452,7 @@ def add_comment(request, task_id):
 
 @login_required
 def delete_comment(request, comment_id):
+
     staff_required(request.user)
 
     comment = get_object_or_404(
