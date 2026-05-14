@@ -5,9 +5,15 @@ from django.db.models import Q
 from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
 
 from .models import Task, Project
 from .forms import TaskForm, ProjectForm
+
+
+def staff_required(user):
+    if not user.is_staff and not user.is_superuser:
+        raise PermissionDenied
 
 
 def login_page(request):
@@ -48,8 +54,9 @@ def register_page(request):
         if form.is_valid():
             user = form.save()
 
-            user.is_staff = True
-            user.is_superuser = True
+            # 일반 회원으로 가입
+            user.is_staff = False
+            user.is_superuser = False
             user.save()
 
             login(request, user)
@@ -94,6 +101,8 @@ def index(request):
         )
 
     if request.method == "POST":
+        staff_required(request.user)
+
         form = TaskForm(
             request.POST,
             request.FILES
@@ -143,6 +152,8 @@ def index(request):
 @login_required
 def projects_page(request):
     if request.method == "POST":
+        staff_required(request.user)
+
         form = ProjectForm(request.POST)
 
         if form.is_valid():
@@ -246,6 +257,8 @@ def settings_page(request):
 
 @login_required
 def delete_task(request, task_id):
+    staff_required(request.user)
+
     task = get_object_or_404(
         Task,
         id=task_id
@@ -258,6 +271,8 @@ def delete_task(request, task_id):
 
 @login_required
 def edit_task(request, task_id):
+    staff_required(request.user)
+
     task = get_object_or_404(
         Task,
         id=task_id
@@ -292,6 +307,8 @@ def edit_task(request, task_id):
 
 @login_required
 def update_task_status(request, task_id, status):
+    staff_required(request.user)
+
     task = get_object_or_404(
         Task,
         id=task_id
