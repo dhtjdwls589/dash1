@@ -27,11 +27,19 @@ def login_page(request):
         if form.is_valid():
             user = form.get_user()
             login(request, user)
+
             return redirect("dashboard_index")
+
     else:
         form = AuthenticationForm()
 
-    return render(request, "dashboard/login.html", {"form": form})
+    return render(
+        request,
+        "dashboard/login.html",
+        {
+            "form": form,
+        }
+    )
 
 
 def register_page(request):
@@ -43,20 +51,30 @@ def register_page(request):
 
         if form.is_valid():
             user = form.save()
+
             user.is_staff = False
             user.is_superuser = False
             user.save()
 
             login(request, user)
+
             return redirect("dashboard_index")
+
     else:
         form = UserCreationForm()
 
-    return render(request, "dashboard/register.html", {"form": form})
+    return render(
+        request,
+        "dashboard/register.html",
+        {
+            "form": form,
+        }
+    )
 
 
 def logout_page(request):
     logout(request)
+
     return redirect("login")
 
 
@@ -86,7 +104,9 @@ def index(request):
 
         if form.is_valid():
             form.save()
+
             return redirect("dashboard_index")
+
     else:
         form = TaskForm()
 
@@ -129,7 +149,9 @@ def projects_page(request):
 
         if form.is_valid():
             form.save()
+
             return redirect("projects_page")
+
     else:
         form = ProjectForm()
 
@@ -139,6 +161,7 @@ def projects_page(request):
 
     for project in projects:
         tasks = project.tasks.all()
+
         total = tasks.count()
         completed = tasks.filter(status="완료").count()
 
@@ -217,12 +240,17 @@ def stats_page(request):
 
 @login_required
 def settings_page(request):
-    return render(request, "dashboard/settings.html")
+    return render(
+        request,
+        "dashboard/settings.html"
+    )
 
 
 @login_required
 def messages_page(request):
-    users = User.objects.exclude(id=request.user.id).order_by("username")
+    users = User.objects.exclude(
+        id=request.user.id
+    ).order_by("username")
 
     return render(
         request,
@@ -235,7 +263,10 @@ def messages_page(request):
 
 @login_required
 def direct_chat_page(request, user_id):
-    other_user = get_object_or_404(User, id=user_id)
+    other_user = get_object_or_404(
+        User,
+        id=user_id
+    )
 
     if other_user.id == request.user.id:
         return redirect("messages_page")
@@ -256,15 +287,22 @@ def direct_chat_page(request, user_id):
 
         if form.is_valid():
             message = form.save(commit=False)
+
             message.sender = request.user
             message.receiver = other_user
             message.save()
 
-            return redirect("direct_chat_page", user_id=other_user.id)
+            return redirect(
+                "direct_chat_page",
+                user_id=other_user.id
+            )
+
     else:
         form = DirectMessageForm()
 
-    users = User.objects.exclude(id=request.user.id).order_by("username")
+    users = User.objects.exclude(
+        id=request.user.id
+    ).order_by("username")
 
     return render(
         request,
@@ -282,7 +320,11 @@ def direct_chat_page(request, user_id):
 def delete_task(request, task_id):
     staff_required(request.user)
 
-    task = get_object_or_404(Task, id=task_id)
+    task = get_object_or_404(
+        Task,
+        id=task_id
+    )
+
     task.delete()
 
     return redirect("dashboard_index")
@@ -292,16 +334,27 @@ def delete_task(request, task_id):
 def edit_task(request, task_id):
     staff_required(request.user)
 
-    task = get_object_or_404(Task, id=task_id)
+    task = get_object_or_404(
+        Task,
+        id=task_id
+    )
 
     if request.method == "POST":
-        form = TaskForm(request.POST, request.FILES, instance=task)
+        form = TaskForm(
+            request.POST,
+            request.FILES,
+            instance=task
+        )
 
         if form.is_valid():
             form.save()
+
             return redirect("dashboard_index")
+
     else:
-        form = TaskForm(instance=task)
+        form = TaskForm(
+            instance=task
+        )
 
     return render(
         request,
@@ -317,7 +370,11 @@ def edit_task(request, task_id):
 def update_task_status(request, task_id, status):
     staff_required(request.user)
 
-    task = get_object_or_404(Task, id=task_id)
+    task = get_object_or_404(
+        Task,
+        id=task_id
+    )
+
     task.status = status
     task.save()
 
@@ -326,13 +383,17 @@ def update_task_status(request, task_id, status):
 
 @login_required
 def add_comment(request, task_id):
-    task = get_object_or_404(Task, id=task_id)
+    task = get_object_or_404(
+        Task,
+        id=task_id
+    )
 
     if request.method == "POST":
         form = CommentForm(request.POST)
 
         if form.is_valid():
             comment = form.save(commit=False)
+
             comment.task = task
             comment.author = request.user
             comment.save()
@@ -344,7 +405,11 @@ def add_comment(request, task_id):
 def delete_comment(request, comment_id):
     staff_required(request.user)
 
-    comment = get_object_or_404(Comment, id=comment_id)
+    comment = get_object_or_404(
+        Comment,
+        id=comment_id
+    )
+
     comment.delete()
 
     return redirect("dashboard_index")
