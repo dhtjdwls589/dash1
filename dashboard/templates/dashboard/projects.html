@@ -5,10 +5,15 @@
     <title>프로젝트</title>
 
     <style>
-        body {
+        * {
             margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
             font-family: Arial, sans-serif;
-            background: #eef2f7;
+            background: #f1f5f9;
             color: #222;
         }
 
@@ -18,55 +23,97 @@
         }
 
         .sidebar {
-            width: 240px;
+            width: 260px;
             background: #111827;
             color: white;
             padding: 24px;
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            overflow-y: auto;
         }
 
         .sidebar-title {
-            font-size: 22px;
+            font-size: 24px;
             font-weight: bold;
-            margin-bottom: 32px;
+            margin-bottom: 10px;
+        }
+
+        .user-box {
+            background: #1f2937;
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 30px;
+        }
+
+        .user-name {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .user-role {
+            font-size: 13px;
+            color: #9ca3af;
         }
 
         .sidebar-menu {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
         }
 
         .sidebar-item {
-            display: block;
-            padding: 14px 16px;
-            border-radius: 10px;
-            color: #d1d5db;
             text-decoration: none;
-        }
-
-        .sidebar-item:hover,
-        .sidebar-item.active {
-            background: #374151;
             color: white;
+            padding: 14px 16px;
+            border-radius: 12px;
+            transition: 0.2s;
+            font-size: 15px;
         }
 
-        .main {
+        .sidebar-item:hover {
+            background: #374151;
+        }
+
+        .sidebar-item.active {
+            background: #4f46e5;
+        }
+
+        .logout-btn {
+            margin-top: 30px;
+            background: #dc2626;
+        }
+
+        .logout-btn:hover {
+            background: #b91c1c;
+        }
+
+        .content {
             flex: 1;
+            margin-left: 260px;
             padding: 32px;
         }
 
         .page-title {
-            font-size: 28px;
+            font-size: 32px;
             font-weight: bold;
             margin-bottom: 24px;
         }
 
-        .section {
+        .card {
             background: white;
-            border-radius: 18px;
+            border-radius: 20px;
             padding: 24px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
             margin-bottom: 24px;
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 20px;
         }
 
         .project-form {
@@ -83,42 +130,40 @@
             font-size: 14px;
         }
 
-        .form-input {
+        input {
             width: 100%;
-            box-sizing: border-box;
-            padding: 12px 14px;
-            border: 1px solid #ddd;
+            padding: 12px;
+            border: 1px solid #d1d5db;
             border-radius: 10px;
-            font-size: 15px;
+            font-size: 14px;
         }
 
-        .submit-btn {
-            width: 100%;
-            padding: 12px 16px;
+        button {
             border: none;
-            border-radius: 10px;
             background: #4f46e5;
             color: white;
+            padding: 14px;
+            border-radius: 12px;
             font-size: 15px;
             font-weight: bold;
             cursor: pointer;
         }
 
-        .submit-btn:hover {
+        button:hover {
             background: #4338ca;
         }
 
         .project-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 18px;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
         }
 
         .project-card {
             background: white;
-            border-radius: 18px;
+            border-radius: 20px;
             padding: 24px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
 
         .project-name {
@@ -136,14 +181,14 @@
         .progress-bg {
             width: 100%;
             height: 10px;
-            background: #e9ecef;
-            border-radius: 20px;
+            background: #e5e7eb;
+            border-radius: 999px;
             overflow: hidden;
             margin-top: 10px;
         }
 
         .progress-bar {
-            height: 10px;
+            height: 100%;
             background: #4f46e5;
         }
 
@@ -166,18 +211,19 @@
             color: #64748b;
         }
 
-        @media (max-width: 900px) {
+        @media(max-width: 1000px) {
+            .sidebar {
+                position: relative;
+                width: 100%;
+                height: auto;
+            }
+
+            .content {
+                margin-left: 0;
+            }
 
             .layout {
                 flex-direction: column;
-            }
-
-            .sidebar {
-                width: auto;
-            }
-
-            .project-grid {
-                grid-template-columns: 1fr;
             }
 
             .project-form {
@@ -191,50 +237,52 @@
 
 <div class="layout">
 
-    <div class="sidebar">
+    <aside class="sidebar">
 
-        <div class="sidebar-title">
-            📊 Dashboard
+        <div class="sidebar-title">🚀 Dashboard</div>
+
+        <div class="user-box">
+            <div class="user-name">
+                {{ request.user.username }}
+            </div>
+
+            <div class="user-role">
+                {% if request.user.is_superuser %}
+                    슈퍼관리자
+                {% elif request.user.is_staff %}
+                    직원 계정
+                {% else %}
+                    일반 회원
+                {% endif %}
+            </div>
         </div>
 
         <div class="sidebar-menu">
+            <a href="/" class="sidebar-item">📊 대시보드</a>
+            <a href="/projects/" class="sidebar-item active">📁 프로젝트</a>
+            <a href="/tasks/" class="sidebar-item">✅ 작업 리스트</a>
+            <a href="/stats/" class="sidebar-item">📈 통계</a>
+            <a href="/settings/" class="sidebar-item">⚙ 설정</a>
 
-            <a href="/" class="sidebar-item">
-                📊 대시보드
+            {% if request.user.is_superuser %}
+            <a href="/admin/" class="sidebar-item">👑 관리자 페이지</a>
+            {% endif %}
+
+            <a href="{% url 'logout' %}" class="sidebar-item logout-btn">
+                🚪 로그아웃
             </a>
-
-            <a href="/projects/" class="sidebar-item active">
-                📁 프로젝트
-            </a>
-
-            <a href="/tasks/" class="sidebar-item">
-                ✅ 작업
-            </a>
-
-            <a href="/stats/" class="sidebar-item">
-                📈 통계
-            </a>
-
-            <a href="/settings/" class="sidebar-item">
-                ⚙ 설정
-            </a>
-
         </div>
 
-    </div>
+    </aside>
 
-    <div class="main">
+    <main class="content">
 
-        <div class="page-title">
-            프로젝트
-        </div>
+        <div class="page-title">프로젝트</div>
 
-        <div class="section">
-
-            <h2>프로젝트 추가</h2>
+        <div class="card">
+            <div class="card-title">프로젝트 추가</div>
 
             <form method="post" class="project-form">
-
                 {% csrf_token %}
 
                 <div>
@@ -243,23 +291,17 @@
                 </div>
 
                 <div>
-                    <button type="submit" class="submit-btn">
+                    <button type="submit">
                         추가
                     </button>
                 </div>
-
             </form>
-
         </div>
 
         {% if project_cards %}
-
         <div class="project-grid">
-
             {% for item in project_cards %}
-
             <div class="project-card">
-
                 <div class="project-name">
                     📁 {{ item.project.name }}
                 </div>
@@ -273,31 +315,22 @@
                 </div>
 
                 <div class="progress-bg">
-                    <div class="progress-bar"
-                         style="width: {{ item.average_progress }}%;">
-                    </div>
+                    <div class="progress-bar" style="width: {{ item.average_progress }}%;"></div>
                 </div>
 
-                <a href="/?project={{ item.project.id }}"
-                   class="view-btn">
+                <a href="/?project={{ item.project.id }}" class="view-btn">
                     프로젝트 보기
                 </a>
-
             </div>
-
             {% endfor %}
-
         </div>
-
         {% else %}
-
         <div class="empty">
             아직 프로젝트가 없습니다.
         </div>
-
         {% endif %}
 
-    </div>
+    </main>
 
 </div>
 

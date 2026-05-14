@@ -29,14 +29,12 @@ def login_page(request):
     else:
         form = AuthenticationForm()
 
-    context = {
-        "form": form,
-    }
-
     return render(
         request,
         "dashboard/login.html",
-        context
+        {
+            "form": form,
+        }
     )
 
 
@@ -56,14 +54,12 @@ def register_page(request):
     else:
         form = UserCreationForm()
 
-    context = {
-        "form": form,
-    }
-
     return render(
         request,
         "dashboard/register.html",
-        context
+        {
+            "form": form,
+        }
     )
 
 
@@ -107,46 +103,35 @@ def index(request):
         form = TaskForm()
 
     total_tasks = tasks.count()
-
-    completed_tasks = tasks.filter(
-        status="완료"
-    ).count()
-
-    in_progress_tasks = tasks.filter(
-        status="진행 중"
-    ).count()
-
-    todo_tasks_count = tasks.filter(
-        status="예정"
-    ).count()
+    completed_tasks = tasks.filter(status="완료").count()
+    in_progress_tasks = tasks.filter(status="진행 중").count()
+    todo_tasks_count = tasks.filter(status="예정").count()
 
     average_progress = int(
         sum(task.progress for task in tasks) / total_tasks
     ) if total_tasks > 0 else 0
 
-    context = {
-        "tasks": tasks,
-        "projects": projects,
-        "form": form,
-
-        "selected_project_id": selected_project_id,
-        "search_query": search_query,
-
-        "total_tasks": total_tasks,
-        "completed_tasks": completed_tasks,
-        "in_progress_tasks": in_progress_tasks,
-        "todo_tasks_count": todo_tasks_count,
-        "average_progress": average_progress,
-
-        "todo_tasks": tasks.filter(status="예정"),
-        "progress_tasks": tasks.filter(status="진행 중"),
-        "done_tasks": tasks.filter(status="완료"),
-    }
-
     return render(
         request,
         "dashboard/index.html",
-        context
+        {
+            "tasks": tasks,
+            "projects": projects,
+            "form": form,
+
+            "selected_project_id": selected_project_id,
+            "search_query": search_query,
+
+            "total_tasks": total_tasks,
+            "completed_tasks": completed_tasks,
+            "in_progress_tasks": in_progress_tasks,
+            "todo_tasks_count": todo_tasks_count,
+            "average_progress": average_progress,
+
+            "todo_tasks": tasks.filter(status="예정"),
+            "progress_tasks": tasks.filter(status="진행 중"),
+            "done_tasks": tasks.filter(status="완료"),
+        }
     )
 
 
@@ -171,10 +156,7 @@ def projects_page(request):
         tasks = project.tasks.all()
 
         total = tasks.count()
-
-        completed = tasks.filter(
-            status="완료"
-        ).count()
+        completed = tasks.filter(status="완료").count()
 
         average_progress = int(
             sum(task.progress for task in tasks) / total
@@ -187,15 +169,13 @@ def projects_page(request):
             "average_progress": average_progress,
         })
 
-    context = {
-        "project_cards": project_cards,
-        "form": form,
-    }
-
     return render(
         request,
         "dashboard/projects.html",
-        context
+        {
+            "project_cards": project_cards,
+            "form": form,
+        }
     )
 
 
@@ -203,9 +183,7 @@ def projects_page(request):
 def tasks_page(request):
     search_query = request.GET.get("q", "").strip()
 
-    tasks = Task.objects.select_related(
-        "project"
-    ).all().order_by("-created_at")
+    tasks = Task.objects.select_related("project").all().order_by("-created_at")
 
     if search_query:
         tasks = tasks.filter(
@@ -214,56 +192,42 @@ def tasks_page(request):
             Q(project__name__icontains=search_query)
         )
 
-    context = {
-        "tasks": tasks,
-        "search_query": search_query,
-        "total_tasks": tasks.count(),
-    }
-
     return render(
         request,
         "dashboard/tasks.html",
-        context
+        {
+            "tasks": tasks,
+            "search_query": search_query,
+            "total_tasks": tasks.count(),
+        }
     )
 
 
 @login_required
 def stats_page(request):
     tasks = Task.objects.all()
-
     projects = Project.objects.all()
 
     total_tasks = tasks.count()
-
-    completed_tasks = tasks.filter(
-        status="완료"
-    ).count()
-
-    in_progress_tasks = tasks.filter(
-        status="진행 중"
-    ).count()
-
-    todo_tasks_count = tasks.filter(
-        status="예정"
-    ).count()
+    completed_tasks = tasks.filter(status="완료").count()
+    in_progress_tasks = tasks.filter(status="진행 중").count()
+    todo_tasks_count = tasks.filter(status="예정").count()
 
     average_progress = int(
         sum(task.progress for task in tasks) / total_tasks
     ) if total_tasks > 0 else 0
 
-    context = {
-        "total_tasks": total_tasks,
-        "completed_tasks": completed_tasks,
-        "in_progress_tasks": in_progress_tasks,
-        "todo_tasks_count": todo_tasks_count,
-        "average_progress": average_progress,
-        "project_count": projects.count(),
-    }
-
     return render(
         request,
         "dashboard/stats.html",
-        context
+        {
+            "total_tasks": total_tasks,
+            "completed_tasks": completed_tasks,
+            "in_progress_tasks": in_progress_tasks,
+            "todo_tasks_count": todo_tasks_count,
+            "average_progress": average_progress,
+            "project_count": projects.count(),
+        }
     )
 
 
@@ -284,9 +248,7 @@ def delete_task(request, task_id):
 
     task.delete()
 
-    return redirect(
-        "dashboard_index"
-    )
+    return redirect("dashboard_index")
 
 
 @login_required
@@ -306,24 +268,20 @@ def edit_task(request, task_id):
         if form.is_valid():
             form.save()
 
-            return redirect(
-                "dashboard_index"
-            )
+            return redirect("dashboard_index")
 
     else:
         form = TaskForm(
             instance=task
         )
 
-    context = {
-        "form": form,
-        "task": task,
-    }
-
     return render(
         request,
         "dashboard/edit.html",
-        context
+        {
+            "form": form,
+            "task": task,
+        }
     )
 
 
@@ -335,7 +293,6 @@ def update_task_status(request, task_id, status):
     )
 
     task.status = status
-
     task.save()
 
     return HttpResponse("OK")
