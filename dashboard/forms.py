@@ -1,65 +1,49 @@
 from django import forms
-
-from .models import Task, Project
+from .models import Task, Project, Comment
 
 
 class TaskForm(forms.ModelForm):
 
     class Meta:
+
         model = Task
 
         fields = [
             "project",
             "name",
-            "status",
-            "progress",
             "memo",
+            "progress",
+            "status",
             "attachment",
         ]
-
-        widgets = {
-            "project": forms.Select(attrs={
-                "class": "form-input"
-            }),
-
-            "name": forms.TextInput(attrs={
-                "class": "form-input",
-                "placeholder": "작업명을 입력하세요"
-            }),
-
-            "status": forms.Select(attrs={
-                "class": "form-input"
-            }),
-
-            "progress": forms.NumberInput(attrs={
-                "class": "form-input",
-                "min": 0,
-                "max": 100
-            }),
-
-            "memo": forms.Textarea(attrs={
-                "class": "form-input memo-input",
-                "placeholder": "메모를 입력하세요"
-            }),
-
-            "attachment": forms.ClearableFileInput(attrs={
-                "class": "form-input"
-            }),
-        }
 
 
 class ProjectForm(forms.ModelForm):
 
     class Meta:
+
         model = Project
 
         fields = [
             "name"
         ]
 
+
+class CommentForm(forms.ModelForm):
+
+    class Meta:
+
+        model = Comment
+
+        fields = [
+            "content"
+        ]
+
         widgets = {
-            "name": forms.TextInput(attrs={
-                "class": "form-input",
-                "placeholder": "프로젝트 이름 입력"
-            })
+            "content": forms.Textarea(
+                attrs={
+                    "rows": 3,
+                    "placeholder": "댓글 입력..."
+                }
+            )
         }

@@ -1,7 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from django.db.models import Q
-
+from .models import Task, Project, Comment
+from .forms import TaskForm, ProjectForm, CommentForm
 from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.decorators import login_required
@@ -318,3 +319,25 @@ def update_task_status(request, task_id, status):
     task.save()
 
     return HttpResponse("OK")
+@login_required
+def add_comment(request, task_id):
+
+    task = get_object_or_404(
+        Task,
+        id=task_id
+    )
+
+    if request.method == "POST":
+
+        form = CommentForm(request.POST)
+
+        if form.is_valid():
+
+            comment = form.save(commit=False)
+
+            comment.task = task
+            comment.author = request.user
+
+            comment.save()
+
+    return redirect("dashboard_index")
