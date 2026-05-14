@@ -201,12 +201,19 @@
             border-radius: 18px;
             padding: 18px;
             min-height: 700px;
+            max-height: 760px;
+            overflow-y: auto;
             display: flex;
             flex-direction: column;
             gap: 14px;
         }
 
         .column-title {
+            position: sticky;
+            top: -18px;
+            z-index: 5;
+            background: #e2e8f0;
+            padding: 12px 0;
             font-size: 18px;
             font-weight: bold;
             margin-bottom: 10px;
@@ -381,6 +388,11 @@
             font-size: 14px;
         }
 
+        .mobile-status-select {
+            display: none;
+            margin-bottom: 14px;
+        }
+
         @media(max-width: 1200px) {
             .main-grid {
                 grid-template-columns: 1fr;
@@ -388,18 +400,164 @@
         }
 
         @media(max-width: 1000px) {
+            .layout {
+                flex-direction: column;
+            }
+
             .sidebar {
                 position: relative;
                 width: 100%;
                 height: auto;
+                padding: 18px;
+            }
+
+            .sidebar-title {
+                font-size: 22px;
+            }
+
+            .user-box {
+                margin-bottom: 18px;
+            }
+
+            .sidebar-menu {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+
+            .sidebar-item {
+                text-align: center;
+                padding: 12px;
+                font-size: 14px;
+            }
+
+            .logout-btn {
+                margin-top: 0;
             }
 
             .content {
                 margin-left: 0;
+                padding: 18px;
             }
 
-            .layout {
-                flex-direction: column;
+            .topbar {
+                margin-bottom: 20px;
+            }
+
+            .page-title {
+                font-size: 24px;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+                margin-bottom: 20px;
+            }
+
+            .stat-card {
+                padding: 18px;
+                border-radius: 16px;
+            }
+
+            .stat-label {
+                font-size: 13px;
+            }
+
+            .stat-value {
+                font-size: 26px;
+            }
+
+            .main-grid {
+                grid-template-columns: 1fr;
+                gap: 18px;
+            }
+
+            .card {
+                padding: 18px;
+                border-radius: 18px;
+            }
+
+            .kanban-wrapper {
+                overflow-x: visible;
+            }
+
+            .kanban-board {
+                min-width: 0;
+                grid-template-columns: 1fr;
+                gap: 18px;
+            }
+
+            .kanban-column {
+                min-height: auto;
+                max-height: 560px;
+                padding: 14px;
+                border-radius: 16px;
+            }
+
+            .column-title {
+                top: -14px;
+                font-size: 17px;
+            }
+
+            .task-card {
+                padding: 16px;
+                border-radius: 14px;
+                cursor: default;
+            }
+
+            .task-actions {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .action-btn {
+                text-align: center;
+                padding: 11px 12px;
+            }
+
+            .comments-list {
+                max-height: 160px;
+            }
+
+            button,
+            input,
+            textarea,
+            select {
+                font-size: 16px;
+            }
+
+            .mobile-status-select {
+                display: block;
+            }
+        }
+
+        @media(max-width: 520px) {
+            .sidebar-menu {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .content {
+                padding: 14px;
+            }
+
+            .page-title {
+                font-size: 22px;
+            }
+
+            .stat-card {
+                padding: 16px;
+            }
+
+            .card {
+                padding: 16px;
+            }
+
+            .task-actions {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -410,7 +568,6 @@
 <div class="layout">
 
     <aside class="sidebar">
-
         <div class="sidebar-title">
             🚀 Dashboard
         </div>
@@ -446,7 +603,6 @@
                 🚪 로그아웃
             </a>
         </div>
-
     </aside>
 
     <main class="content">
@@ -481,6 +637,7 @@
 
         <div class="main-grid">
 
+            {% if request.user.is_staff or request.user.is_superuser %}
             <div class="card">
                 <div class="card-title">
                     작업 추가
@@ -495,16 +652,16 @@
                     </button>
                 </form>
             </div>
+            {% endif %}
 
             <div class="kanban-wrapper">
-
                 <div class="kanban-board">
 
                     <div class="kanban-column" ondragover="allowDrop(event)" ondrop="drop(event, '예정')">
                         <div class="column-title">📌 예정</div>
 
                         {% for task in todo_tasks %}
-                        <div class="task-card" draggable="true" ondragstart="drag(event)" data-task-id="{{ task.id }}">
+                        <div class="task-card" draggable="{% if request.user.is_staff or request.user.is_superuser %}true{% else %}false{% endif %}" ondragstart="drag(event)" data-task-id="{{ task.id }}">
                             <div class="task-title">{{ task.name }}</div>
 
                             {% if task.project %}
@@ -512,6 +669,14 @@
                             {% endif %}
 
                             <div class="task-memo">{{ task.memo }}</div>
+
+                            {% if request.user.is_staff or request.user.is_superuser %}
+                            <select class="mobile-status-select" onchange="changeStatus(this, '{{ task.id }}')">
+                                <option value="예정" selected>예정</option>
+                                <option value="진행 중">진행 중</option>
+                                <option value="완료">완료</option>
+                            </select>
+                            {% endif %}
 
                             <div class="progress-bar">
                                 <div class="progress-fill" style="width: {{ task.progress }}%;"></div>
@@ -585,7 +750,7 @@
                         <div class="column-title">🚧 진행 중</div>
 
                         {% for task in progress_tasks %}
-                        <div class="task-card" draggable="true" ondragstart="drag(event)" data-task-id="{{ task.id }}">
+                        <div class="task-card" draggable="{% if request.user.is_staff or request.user.is_superuser %}true{% else %}false{% endif %}" ondragstart="drag(event)" data-task-id="{{ task.id }}">
                             <div class="task-title">{{ task.name }}</div>
 
                             {% if task.project %}
@@ -593,6 +758,14 @@
                             {% endif %}
 
                             <div class="task-memo">{{ task.memo }}</div>
+
+                            {% if request.user.is_staff or request.user.is_superuser %}
+                            <select class="mobile-status-select" onchange="changeStatus(this, '{{ task.id }}')">
+                                <option value="예정">예정</option>
+                                <option value="진행 중" selected>진행 중</option>
+                                <option value="완료">완료</option>
+                            </select>
+                            {% endif %}
 
                             <div class="progress-bar">
                                 <div class="progress-fill" style="width: {{ task.progress }}%;"></div>
@@ -666,7 +839,7 @@
                         <div class="column-title">✅ 완료</div>
 
                         {% for task in done_tasks %}
-                        <div class="task-card" draggable="true" ondragstart="drag(event)" data-task-id="{{ task.id }}">
+                        <div class="task-card" draggable="{% if request.user.is_staff or request.user.is_superuser %}true{% else %}false{% endif %}" ondragstart="drag(event)" data-task-id="{{ task.id }}">
                             <div class="task-title">{{ task.name }}</div>
 
                             {% if task.project %}
@@ -674,6 +847,14 @@
                             {% endif %}
 
                             <div class="task-memo">{{ task.memo }}</div>
+
+                            {% if request.user.is_staff or request.user.is_superuser %}
+                            <select class="mobile-status-select" onchange="changeStatus(this, '{{ task.id }}')">
+                                <option value="예정">예정</option>
+                                <option value="진행 중">진행 중</option>
+                                <option value="완료" selected>완료</option>
+                            </select>
+                            {% endif %}
 
                             <div class="progress-bar">
                                 <div class="progress-fill" style="width: {{ task.progress }}%;"></div>
@@ -744,7 +925,6 @@
                     </div>
 
                 </div>
-
             </div>
 
         </div>
@@ -771,8 +951,16 @@
             return;
         }
 
+        updateStatus(draggedTaskId, status);
+    }
+
+    function changeStatus(selectElement, taskId) {
+        updateStatus(taskId, selectElement.value);
+    }
+
+    function updateStatus(taskId, status) {
         fetch(
-            `/update-status/${draggedTaskId}/${status}/`,
+            `/update-status/${taskId}/${encodeURIComponent(status)}/`,
             {
                 method: "POST",
                 headers: {
