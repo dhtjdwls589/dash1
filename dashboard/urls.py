@@ -13,6 +13,9 @@ urlpatterns = [
     path("stats/", views.stats_page, name="stats_page"),
     path("settings/", views.settings_page, name="settings_page"),
 
+    path("messages/", views.messages_page, name="messages_page"),
+    path("messages/<int:user_id>/", views.direct_chat_page, name="direct_chat_page"),
+
     path("delete/<int:task_id>/", views.delete_task, name="delete_task"),
     path("edit/<int:task_id>/", views.edit_task, name="edit_task"),
 

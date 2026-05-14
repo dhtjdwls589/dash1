@@ -3,12 +3,13 @@ from django.http import HttpResponse
 from django.db.models import Q
 
 from django.contrib.auth import login, logout
+from django.contrib.auth.models import User
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 
-from .models import Task, Project, Comment
-from .forms import TaskForm, ProjectForm, CommentForm
+from .models import Task, Project, Comment, DirectMessage
+from .forms import TaskForm, ProjectForm, CommentForm, DirectMessageForm
 
 
 def staff_required(user):
@@ -217,6 +218,64 @@ def stats_page(request):
 @login_required
 def settings_page(request):
     return render(request, "dashboard/settings.html")
+
+
+@login_required
+def messages_page(request):
+    users = User.objects.exclude(id=request.user.id).order_by("username")
+
+    return render(
+        request,
+        "dashboard/messages.html",
+        {
+            "users": users,
+        }
+    )
+
+
+@login_required
+def direct_chat_page(request, user_id):
+    other_user = get_object_or_404(User, id=user_id)
+
+    if other_user.id == request.user.id:
+        return redirect("messages_page")
+
+    chat_messages = DirectMessage.objects.filter(
+        Q(sender=request.user, receiver=other_user) |
+        Q(sender=other_user, receiver=request.user)
+    ).order_by("created_at")
+
+    DirectMessage.objects.filter(
+        sender=other_user,
+        receiver=request.user,
+        is_read=False
+    ).update(is_read=True)
+
+    if request.method == "POST":
+        form = DirectMessageForm(request.POST)
+
+        if form.is_valid():
+            message = form.save(commit=False)
+            message.sender = request.user
+            message.receiver = other_user
+            message.save()
+
+            return redirect("direct_chat_page", user_id=other_user.id)
+    else:
+        form = DirectMessageForm()
+
+    users = User.objects.exclude(id=request.user.id).order_by("username")
+
+    return render(
+        request,
+        "dashboard/direct_chat.html",
+        {
+            "users": users,
+            "other_user": other_user,
+            "chat_messages": chat_messages,
+            "form": form,
+        }
+    )
 
 
 @login_required
