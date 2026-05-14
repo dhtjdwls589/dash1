@@ -2,10 +2,78 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from django.db.models import Q
 
+from django.contrib.auth import login, logout
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.contrib.auth.decorators import login_required
+
 from .models import Task, Project
 from .forms import TaskForm, ProjectForm
 
 
+def login_page(request):
+    if request.user.is_authenticated:
+        return redirect("dashboard_index")
+
+    if request.method == "POST":
+        form = AuthenticationForm(
+            request,
+            data=request.POST
+        )
+
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+
+            return redirect("dashboard_index")
+
+    else:
+        form = AuthenticationForm()
+
+    context = {
+        "form": form,
+    }
+
+    return render(
+        request,
+        "dashboard/login.html",
+        context
+    )
+
+
+def register_page(request):
+    if request.user.is_authenticated:
+        return redirect("dashboard_index")
+
+    if request.method == "POST":
+        form = UserCreationForm(request.POST)
+
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+
+            return redirect("dashboard_index")
+
+    else:
+        form = UserCreationForm()
+
+    context = {
+        "form": form,
+    }
+
+    return render(
+        request,
+        "dashboard/register.html",
+        context
+    )
+
+
+def logout_page(request):
+    logout(request)
+
+    return redirect("login")
+
+
+@login_required
 def index(request):
     projects = Project.objects.all()
 
@@ -25,7 +93,6 @@ def index(request):
         )
 
     if request.method == "POST":
-
         form = TaskForm(
             request.POST,
             request.FILES
@@ -83,10 +150,9 @@ def index(request):
     )
 
 
+@login_required
 def projects_page(request):
-
     if request.method == "POST":
-
         form = ProjectForm(request.POST)
 
         if form.is_valid():
@@ -102,7 +168,6 @@ def projects_page(request):
     project_cards = []
 
     for project in projects:
-
         tasks = project.tasks.all()
 
         total = tasks.count()
@@ -134,8 +199,8 @@ def projects_page(request):
     )
 
 
+@login_required
 def tasks_page(request):
-
     search_query = request.GET.get("q", "").strip()
 
     tasks = Task.objects.select_related(
@@ -143,7 +208,6 @@ def tasks_page(request):
     ).all().order_by("-created_at")
 
     if search_query:
-
         tasks = tasks.filter(
             Q(name__icontains=search_query) |
             Q(memo__icontains=search_query) |
@@ -163,8 +227,8 @@ def tasks_page(request):
     )
 
 
+@login_required
 def stats_page(request):
-
     tasks = Task.objects.all()
 
     projects = Project.objects.all()
@@ -203,16 +267,16 @@ def stats_page(request):
     )
 
 
+@login_required
 def settings_page(request):
-
     return render(
         request,
         "dashboard/settings.html"
     )
 
 
+@login_required
 def delete_task(request, task_id):
-
     task = get_object_or_404(
         Task,
         id=task_id
@@ -225,15 +289,14 @@ def delete_task(request, task_id):
     )
 
 
+@login_required
 def edit_task(request, task_id):
-
     task = get_object_or_404(
         Task,
         id=task_id
     )
 
     if request.method == "POST":
-
         form = TaskForm(
             request.POST,
             request.FILES,
@@ -241,7 +304,6 @@ def edit_task(request, task_id):
         )
 
         if form.is_valid():
-
             form.save()
 
             return redirect(
@@ -249,7 +311,6 @@ def edit_task(request, task_id):
             )
 
     else:
-
         form = TaskForm(
             instance=task
         )
@@ -266,8 +327,8 @@ def edit_task(request, task_id):
     )
 
 
+@login_required
 def update_task_status(request, task_id, status):
-
     task = get_object_or_404(
         Task,
         id=task_id
