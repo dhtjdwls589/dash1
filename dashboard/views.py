@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.db.models import Q
 
 from django.contrib.auth import login, logout
@@ -26,21 +26,12 @@ def login_page(request):
 
         if form.is_valid():
             user = form.get_user()
-
             login(request, user)
-
             return redirect("dashboard_index")
-
     else:
         form = AuthenticationForm()
 
-    return render(
-        request,
-        "dashboard/login.html",
-        {
-            "form": form,
-        }
-    )
+    return render(request, "dashboard/login.html", {"form": form})
 
 
 def register_page(request):
@@ -52,30 +43,20 @@ def register_page(request):
 
         if form.is_valid():
             user = form.save()
-
             user.is_staff = False
             user.is_superuser = False
             user.save()
 
             login(request, user)
-
             return redirect("dashboard_index")
-
     else:
         form = UserCreationForm()
 
-    return render(
-        request,
-        "dashboard/register.html",
-        {
-            "form": form,
-        }
-    )
+    return render(request, "dashboard/register.html", {"form": form})
 
 
 def logout_page(request):
     logout(request)
-
     return redirect("login")
 
 
@@ -86,14 +67,10 @@ def index(request):
     selected_project_id = request.GET.get("project")
     search_query = request.GET.get("q", "").strip()
 
-    tasks = Task.objects.select_related(
-        "project"
-    ).all().order_by("-created_at")
+    tasks = Task.objects.select_related("project").all().order_by("-created_at")
 
     if selected_project_id:
-        tasks = tasks.filter(
-            project_id=selected_project_id
-        )
+        tasks = tasks.filter(project_id=selected_project_id)
 
     if search_query:
         tasks = tasks.filter(
@@ -105,36 +82,27 @@ def index(request):
     if request.method == "POST":
         staff_required(request.user)
 
-        form = TaskForm(
-            request.POST,
-            request.FILES
-        )
+        form = TaskForm(request.POST, request.FILES)
 
         if form.is_valid():
             form.save()
-
             return redirect("dashboard_index")
-
     else:
         form = TaskForm()
 
     total_tasks = tasks.count()
-
-    completed_tasks = tasks.filter(
-        status="완료"
-    ).count()
-
-    in_progress_tasks = tasks.filter(
-        status="진행 중"
-    ).count()
-
-    todo_tasks_count = tasks.filter(
-        status="예정"
-    ).count()
+    completed_tasks = tasks.filter(status="완료").count()
+    in_progress_tasks = tasks.filter(status="진행 중").count()
+    todo_tasks_count = tasks.filter(status="예정").count()
 
     average_progress = int(
         sum(task.progress for task in tasks) / total_tasks
     ) if total_tasks > 0 else 0
+
+    unread_message_count = DirectMessage.objects.filter(
+        receiver=request.user,
+        is_read=False
+    ).count()
 
     return render(
         request,
@@ -153,6 +121,7 @@ def index(request):
             "todo_tasks": tasks.filter(status="예정"),
             "progress_tasks": tasks.filter(status="진행 중"),
             "done_tasks": tasks.filter(status="완료"),
+            "unread_message_count": unread_message_count,
         }
     )
 
@@ -166,26 +135,18 @@ def projects_page(request):
 
         if form.is_valid():
             form.save()
-
             return redirect("projects_page")
-
     else:
         form = ProjectForm()
 
-    projects = Project.objects.all().order_by(
-        "-created_at"
-    )
+    projects = Project.objects.all().order_by("-created_at")
 
     project_cards = []
 
     for project in projects:
         tasks = project.tasks.all()
-
         total = tasks.count()
-
-        completed = tasks.filter(
-            status="완료"
-        ).count()
+        completed = tasks.filter(status="완료").count()
 
         average_progress = int(
             sum(task.progress for task in tasks) / total
@@ -198,26 +159,27 @@ def projects_page(request):
             "average_progress": average_progress,
         })
 
+    unread_message_count = DirectMessage.objects.filter(
+        receiver=request.user,
+        is_read=False
+    ).count()
+
     return render(
         request,
         "dashboard/projects.html",
         {
             "project_cards": project_cards,
             "form": form,
+            "unread_message_count": unread_message_count,
         }
     )
 
 
 @login_required
 def tasks_page(request):
-    search_query = request.GET.get(
-        "q",
-        ""
-    ).strip()
+    search_query = request.GET.get("q", "").strip()
 
-    tasks = Task.objects.select_related(
-        "project"
-    ).all().order_by("-created_at")
+    tasks = Task.objects.select_related("project").all().order_by("-created_at")
 
     if search_query:
         tasks = tasks.filter(
@@ -226,6 +188,11 @@ def tasks_page(request):
             Q(project__name__icontains=search_query)
         )
 
+    unread_message_count = DirectMessage.objects.filter(
+        receiver=request.user,
+        is_read=False
+    ).count()
+
     return render(
         request,
         "dashboard/tasks.html",
@@ -233,6 +200,7 @@ def tasks_page(request):
             "tasks": tasks,
             "search_query": search_query,
             "total_tasks": tasks.count(),
+            "unread_message_count": unread_message_count,
         }
     )
 
@@ -240,26 +208,21 @@ def tasks_page(request):
 @login_required
 def stats_page(request):
     tasks = Task.objects.all()
-
     projects = Project.objects.all()
 
     total_tasks = tasks.count()
-
-    completed_tasks = tasks.filter(
-        status="완료"
-    ).count()
-
-    in_progress_tasks = tasks.filter(
-        status="진행 중"
-    ).count()
-
-    todo_tasks_count = tasks.filter(
-        status="예정"
-    ).count()
+    completed_tasks = tasks.filter(status="완료").count()
+    in_progress_tasks = tasks.filter(status="진행 중").count()
+    todo_tasks_count = tasks.filter(status="예정").count()
 
     average_progress = int(
         sum(task.progress for task in tasks) / total_tasks
     ) if total_tasks > 0 else 0
+
+    unread_message_count = DirectMessage.objects.filter(
+        receiver=request.user,
+        is_read=False
+    ).count()
 
     return render(
         request,
@@ -271,21 +234,29 @@ def stats_page(request):
             "todo_tasks_count": todo_tasks_count,
             "average_progress": average_progress,
             "project_count": projects.count(),
+            "unread_message_count": unread_message_count,
         }
     )
 
 
 @login_required
 def settings_page(request):
+    unread_message_count = DirectMessage.objects.filter(
+        receiver=request.user,
+        is_read=False
+    ).count()
+
     return render(
         request,
-        "dashboard/settings.html"
+        "dashboard/settings.html",
+        {
+            "unread_message_count": unread_message_count,
+        }
     )
 
 
 @login_required
 def messages_page(request):
-
     first_user = User.objects.exclude(
         id=request.user.id
     ).first()
@@ -296,18 +267,23 @@ def messages_page(request):
             user_id=first_user.id
         )
 
+    unread_message_count = DirectMessage.objects.filter(
+        receiver=request.user,
+        is_read=False
+    ).count()
+
     return render(
         request,
         "dashboard/messages.html",
         {
             "users": [],
+            "unread_message_count": unread_message_count,
         }
     )
 
 
 @login_required
 def direct_chat_page(request, user_id):
-
     other_user = get_object_or_404(
         User,
         id=user_id
@@ -332,23 +308,25 @@ def direct_chat_page(request, user_id):
 
         if form.is_valid():
             message = form.save(commit=False)
-
             message.sender = request.user
             message.receiver = other_user
-
             message.save()
 
             return redirect(
                 "direct_chat_page",
                 user_id=other_user.id
             )
-
     else:
         form = DirectMessageForm()
 
     users = User.objects.exclude(
         id=request.user.id
     ).order_by("username")
+
+    unread_message_count = DirectMessage.objects.filter(
+        receiver=request.user,
+        is_read=False
+    ).count()
 
     return render(
         request,
@@ -358,19 +336,68 @@ def direct_chat_page(request, user_id):
             "other_user": other_user,
             "chat_messages": chat_messages,
             "form": form,
+            "unread_message_count": unread_message_count,
         }
     )
+
+
+@login_required
+def fetch_messages(request, user_id):
+    other_user = get_object_or_404(
+        User,
+        id=user_id
+    )
+
+    messages = DirectMessage.objects.filter(
+        Q(sender=request.user, receiver=other_user) |
+        Q(sender=other_user, receiver=request.user)
+    ).order_by("created_at")
+
+    DirectMessage.objects.filter(
+        sender=other_user,
+        receiver=request.user,
+        is_read=False
+    ).update(is_read=True)
+
+    data = []
+
+    for message in messages:
+        data.append({
+            "id": message.id,
+            "content": message.content,
+            "sender": message.sender.username,
+            "is_mine": message.sender_id == request.user.id,
+            "created_at": message.created_at.strftime("%Y-%m-%d %H:%M"),
+        })
+
+    unread_count = DirectMessage.objects.filter(
+        receiver=request.user,
+        is_read=False
+    ).count()
+
+    return JsonResponse({
+        "messages": data,
+        "unread_count": unread_count,
+    })
+
+
+@login_required
+def unread_message_count(request):
+    count = DirectMessage.objects.filter(
+        receiver=request.user,
+        is_read=False
+    ).count()
+
+    return JsonResponse({
+        "unread_count": count
+    })
 
 
 @login_required
 def delete_task(request, task_id):
     staff_required(request.user)
 
-    task = get_object_or_404(
-        Task,
-        id=task_id
-    )
-
+    task = get_object_or_404(Task, id=task_id)
     task.delete()
 
     return redirect("dashboard_index")
@@ -380,10 +407,7 @@ def delete_task(request, task_id):
 def edit_task(request, task_id):
     staff_required(request.user)
 
-    task = get_object_or_404(
-        Task,
-        id=task_id
-    )
+    task = get_object_or_404(Task, id=task_id)
 
     if request.method == "POST":
         form = TaskForm(
@@ -394,13 +418,9 @@ def edit_task(request, task_id):
 
         if form.is_valid():
             form.save()
-
             return redirect("dashboard_index")
-
     else:
-        form = TaskForm(
-            instance=task
-        )
+        form = TaskForm(instance=task)
 
     return render(
         request,
@@ -416,13 +436,8 @@ def edit_task(request, task_id):
 def update_task_status(request, task_id, status):
     staff_required(request.user)
 
-    task = get_object_or_404(
-        Task,
-        id=task_id
-    )
-
+    task = get_object_or_404(Task, id=task_id)
     task.status = status
-
     task.save()
 
     return HttpResponse("OK")
@@ -430,21 +445,15 @@ def update_task_status(request, task_id, status):
 
 @login_required
 def add_comment(request, task_id):
-
-    task = get_object_or_404(
-        Task,
-        id=task_id
-    )
+    task = get_object_or_404(Task, id=task_id)
 
     if request.method == "POST":
         form = CommentForm(request.POST)
 
         if form.is_valid():
             comment = form.save(commit=False)
-
             comment.task = task
             comment.author = request.user
-
             comment.save()
 
     return redirect("dashboard_index")
@@ -452,14 +461,9 @@ def add_comment(request, task_id):
 
 @login_required
 def delete_comment(request, comment_id):
-
     staff_required(request.user)
 
-    comment = get_object_or_404(
-        Comment,
-        id=comment_id
-    )
-
+    comment = get_object_or_404(Comment, id=comment_id)
     comment.delete()
 
     return redirect("dashboard_index")

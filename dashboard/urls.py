@@ -16,6 +16,18 @@ urlpatterns = [
     path("messages/", views.messages_page, name="messages_page"),
     path("messages/<int:user_id>/", views.direct_chat_page, name="direct_chat_page"),
 
+    path(
+        "fetch-messages/<int:user_id>/",
+        views.fetch_messages,
+        name="fetch_messages"
+    ),
+
+    path(
+        "unread-message-count/",
+        views.unread_message_count,
+        name="unread_message_count"
+    ),
+
     path("delete/<int:task_id>/", views.delete_task, name="delete_task"),
     path("edit/<int:task_id>/", views.edit_task, name="edit_task"),
 

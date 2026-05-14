@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>채팅</title>
+    <title>메신저</title>
 
     <style>
         * {
@@ -88,6 +88,17 @@
 
         .logout-btn:hover {
             background: #b91c1c;
+        }
+
+        .message-badge {
+            background: #ef4444;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            padding: 4px 8px;
+            border-radius: 999px;
+            margin-left: 8px;
+            display: none;
         }
 
         .content {
@@ -302,7 +313,14 @@
             <a href="/projects/" class="sidebar-item">📁 프로젝트</a>
             <a href="/tasks/" class="sidebar-item">✅ 작업 리스트</a>
             <a href="/stats/" class="sidebar-item">📈 통계</a>
-            <a href="/messages/" class="sidebar-item active">💬 메신저</a>
+
+            <a href="/messages/" class="sidebar-item active">
+                💬 메신저
+                <span id="messageBadge" class="message-badge">
+                    {{ unread_message_count }}
+                </span>
+            </a>
+
             <a href="/settings/" class="sidebar-item">⚙ 설정</a>
 
             {% if request.user.is_superuser %}
@@ -356,7 +374,6 @@
 
                 <form method="post">
                     {% csrf_token %}
-
                     {{ form.content }}
 
                     <button type="submit" class="send-btn">
@@ -370,11 +387,118 @@
 </div>
 
 <script>
+    let lastMessageCount = 0;
+    let firstLoad = true;
+
     const messagesBox = document.getElementById("messagesBox");
 
-    if (messagesBox) {
-        messagesBox.scrollTop = messagesBox.scrollHeight;
+    function escapeHtml(text) {
+        const div = document.createElement("div");
+        div.innerText = text;
+        return div.innerHTML;
     }
+
+    function scrollToBottom() {
+        if (messagesBox) {
+            messagesBox.scrollTop = messagesBox.scrollHeight;
+        }
+    }
+
+    function renderMessages(messages) {
+        if (!messagesBox) {
+            return;
+        }
+
+        messagesBox.innerHTML = "";
+
+        if (messages.length === 0) {
+            messagesBox.innerHTML = "<p style='color:#64748b;'>아직 메시지가 없습니다.</p>";
+            return;
+        }
+
+        messages.forEach(function(message) {
+            const row = document.createElement("div");
+
+            if (message.is_mine) {
+                row.className = "message-row mine";
+            } else {
+                row.className = "message-row other";
+            }
+
+            row.innerHTML = `
+                <div class="message-bubble">
+                    <div>
+                        ${escapeHtml(message.content)}
+                    </div>
+
+                    <div class="message-meta">
+                        ${message.created_at}
+                    </div>
+                </div>
+            `;
+
+            messagesBox.appendChild(row);
+        });
+
+        scrollToBottom();
+    }
+
+    function updateBadge(count) {
+        const badge = document.getElementById("messageBadge");
+
+        if (!badge) {
+            return;
+        }
+
+        if (count > 0) {
+            badge.style.display = "inline-block";
+            badge.innerText = count;
+            document.title = `(${count}) 새 메시지`;
+        } else {
+            badge.style.display = "none";
+            document.title = "메신저";
+        }
+    }
+
+    function playNotification() {
+        const audio = new Audio(
+            "https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"
+        );
+
+        audio.play().catch(function() {
+            console.log("알림음 재생이 차단되었습니다.");
+        });
+    }
+
+    function checkMessages() {
+        fetch(`/fetch-messages/{{ other_user.id }}/`)
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(data) {
+                renderMessages(data.messages);
+                updateBadge(data.unread_count);
+
+                if (
+                    !firstLoad &&
+                    data.messages.length > lastMessageCount
+                ) {
+                    playNotification();
+                }
+
+                lastMessageCount = data.messages.length;
+                firstLoad = false;
+            })
+            .catch(function(error) {
+                console.log("메시지 갱신 오류:", error);
+            });
+    }
+
+    scrollToBottom();
+
+    checkMessages();
+
+    setInterval(checkMessages, 3000);
 </script>
 
 </body>
