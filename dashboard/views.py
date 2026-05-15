@@ -17,6 +17,35 @@ def staff_required(user):
         raise PermissionDenied
 
 
+def get_unread_count(user):
+    return DirectMessage.objects.filter(
+        receiver=user,
+        is_read=False
+    ).count()
+
+
+def get_users_with_unread(current_user):
+    users = User.objects.exclude(
+        id=current_user.id
+    ).order_by("username")
+
+    result = []
+
+    for user in users:
+        unread_count = DirectMessage.objects.filter(
+            sender=user,
+            receiver=current_user,
+            is_read=False
+        ).count()
+
+        result.append({
+            "user": user,
+            "unread_count": unread_count,
+        })
+
+    return result
+
+
 def login_page(request):
     if request.user.is_authenticated:
         return redirect("dashboard_index")
@@ -99,11 +128,6 @@ def index(request):
         sum(task.progress for task in tasks) / total_tasks
     ) if total_tasks > 0 else 0
 
-    unread_message_count = DirectMessage.objects.filter(
-        receiver=request.user,
-        is_read=False
-    ).count()
-
     return render(
         request,
         "dashboard/index.html",
@@ -121,7 +145,7 @@ def index(request):
             "todo_tasks": tasks.filter(status="예정"),
             "progress_tasks": tasks.filter(status="진행 중"),
             "done_tasks": tasks.filter(status="완료"),
-            "unread_message_count": unread_message_count,
+            "unread_message_count": get_unread_count(request.user),
         }
     )
 
@@ -159,18 +183,13 @@ def projects_page(request):
             "average_progress": average_progress,
         })
 
-    unread_message_count = DirectMessage.objects.filter(
-        receiver=request.user,
-        is_read=False
-    ).count()
-
     return render(
         request,
         "dashboard/projects.html",
         {
             "project_cards": project_cards,
             "form": form,
-            "unread_message_count": unread_message_count,
+            "unread_message_count": get_unread_count(request.user),
         }
     )
 
@@ -188,11 +207,6 @@ def tasks_page(request):
             Q(project__name__icontains=search_query)
         )
 
-    unread_message_count = DirectMessage.objects.filter(
-        receiver=request.user,
-        is_read=False
-    ).count()
-
     return render(
         request,
         "dashboard/tasks.html",
@@ -200,7 +214,7 @@ def tasks_page(request):
             "tasks": tasks,
             "search_query": search_query,
             "total_tasks": tasks.count(),
-            "unread_message_count": unread_message_count,
+            "unread_message_count": get_unread_count(request.user),
         }
     )
 
@@ -219,11 +233,6 @@ def stats_page(request):
         sum(task.progress for task in tasks) / total_tasks
     ) if total_tasks > 0 else 0
 
-    unread_message_count = DirectMessage.objects.filter(
-        receiver=request.user,
-        is_read=False
-    ).count()
-
     return render(
         request,
         "dashboard/stats.html",
@@ -234,23 +243,18 @@ def stats_page(request):
             "todo_tasks_count": todo_tasks_count,
             "average_progress": average_progress,
             "project_count": projects.count(),
-            "unread_message_count": unread_message_count,
+            "unread_message_count": get_unread_count(request.user),
         }
     )
 
 
 @login_required
 def settings_page(request):
-    unread_message_count = DirectMessage.objects.filter(
-        receiver=request.user,
-        is_read=False
-    ).count()
-
     return render(
         request,
         "dashboard/settings.html",
         {
-            "unread_message_count": unread_message_count,
+            "unread_message_count": get_unread_count(request.user),
         }
     )
 
@@ -267,17 +271,12 @@ def messages_page(request):
             user_id=first_user.id
         )
 
-    unread_message_count = DirectMessage.objects.filter(
-        receiver=request.user,
-        is_read=False
-    ).count()
-
     return render(
         request,
         "dashboard/messages.html",
         {
             "users": [],
-            "unread_message_count": unread_message_count,
+            "unread_message_count": get_unread_count(request.user),
         }
     )
 
@@ -319,24 +318,15 @@ def direct_chat_page(request, user_id):
     else:
         form = DirectMessageForm()
 
-    users = User.objects.exclude(
-        id=request.user.id
-    ).order_by("username")
-
-    unread_message_count = DirectMessage.objects.filter(
-        receiver=request.user,
-        is_read=False
-    ).count()
-
     return render(
         request,
         "dashboard/direct_chat.html",
         {
-            "users": users,
+            "users_with_unread": get_users_with_unread(request.user),
             "other_user": other_user,
             "chat_messages": chat_messages,
             "form": form,
-            "unread_message_count": unread_message_count,
+            "unread_message_count": get_unread_count(request.user),
         }
     )
 
@@ -370,10 +360,7 @@ def fetch_messages(request, user_id):
             "created_at": message.created_at.strftime("%Y-%m-%d %H:%M"),
         })
 
-    unread_count = DirectMessage.objects.filter(
-        receiver=request.user,
-        is_read=False
-    ).count()
+    unread_count = get_unread_count(request.user)
 
     return JsonResponse({
         "messages": data,
@@ -383,13 +370,41 @@ def fetch_messages(request, user_id):
 
 @login_required
 def unread_message_count(request):
-    count = DirectMessage.objects.filter(
-        receiver=request.user,
-        is_read=False
-    ).count()
+    count = get_unread_count(request.user)
 
     return JsonResponse({
         "unread_count": count
+    })
+
+
+@login_required
+def unread_message_summary(request):
+    users_data = []
+
+    users = User.objects.exclude(
+        id=request.user.id
+    ).order_by("username")
+
+    total_count = 0
+
+    for user in users:
+        count = DirectMessage.objects.filter(
+            sender=user,
+            receiver=request.user,
+            is_read=False
+        ).count()
+
+        total_count += count
+
+        users_data.append({
+            "user_id": user.id,
+            "username": user.username,
+            "unread_count": count,
+        })
+
+    return JsonResponse({
+        "total_unread_count": total_count,
+        "users": users_data,
     })
 
 

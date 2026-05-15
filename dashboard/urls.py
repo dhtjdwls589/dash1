@@ -28,6 +28,12 @@ urlpatterns = [
         name="unread_message_count"
     ),
 
+    path(
+        "unread-message-summary/",
+        views.unread_message_summary,
+        name="unread_message_summary"
+    ),
+
     path("delete/<int:task_id>/", views.delete_task, name="delete_task"),
     path("edit/<int:task_id>/", views.edit_task, name="edit_task"),
 

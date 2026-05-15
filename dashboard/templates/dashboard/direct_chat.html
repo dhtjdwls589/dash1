@@ -128,8 +128,12 @@
         }
 
         .user-link {
-            display: block;
-            padding: 12px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 12px 14px;
             border-radius: 12px;
             text-decoration: none;
             color: #111827;
@@ -142,6 +146,26 @@
             background: #eef2ff;
             color: #4338ca;
             font-weight: bold;
+        }
+
+        .user-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .user-unread-badge {
+            min-width: 22px;
+            height: 22px;
+            padding: 0 7px;
+            border-radius: 999px;
+            background: #ef4444;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            display: none;
+            align-items: center;
+            justify-content: center;
         }
 
         .chat-header {
@@ -337,12 +361,24 @@
         <div class="chat-layout">
 
             <div class="user-list-card">
-                {% for user in users %}
+                {% for item in users_with_unread %}
                 <a
-                    href="{% url 'direct_chat_page' user.id %}"
-                    class="user-link {% if other_user.id == user.id %}active{% endif %}"
+                    href="{% url 'direct_chat_page' item.user.id %}"
+                    class="user-link {% if other_user.id == item.user.id %}active{% endif %}"
+                    data-user-id="{{ item.user.id }}"
                 >
-                    👤 {{ user.username }}
+                    <div class="user-left">
+                        <span>👤</span>
+                        <span>{{ item.user.username }}</span>
+                    </div>
+
+                    <span
+                        class="user-unread-badge"
+                        id="userUnreadBadge{{ item.user.id }}"
+                        data-user-badge="{{ item.user.id }}"
+                    >
+                        {{ item.unread_count }}
+                    </span>
                 </a>
                 {% empty %}
                 <p>사용자가 없습니다.</p>
@@ -443,7 +479,7 @@
         scrollToBottom();
     }
 
-    function updateBadge(count) {
+    function updateSidebarBadge(count) {
         const badge = document.getElementById("messageBadge");
 
         if (!badge) {
@@ -458,6 +494,26 @@
             badge.style.display = "none";
             document.title = "메신저";
         }
+    }
+
+    function updateUserBadges(users) {
+        users.forEach(function(userData) {
+            const badge = document.getElementById(
+                `userUnreadBadge${userData.user_id}`
+            );
+
+            if (!badge) {
+                return;
+            }
+
+            if (userData.unread_count > 0) {
+                badge.style.display = "flex";
+                badge.innerText = userData.unread_count;
+            } else {
+                badge.style.display = "none";
+                badge.innerText = "0";
+            }
+        });
     }
 
     function playNotification() {
@@ -477,7 +533,7 @@
             })
             .then(function(data) {
                 renderMessages(data.messages);
-                updateBadge(data.unread_count);
+                updateSidebarBadge(data.unread_count);
 
                 if (
                     !firstLoad &&
@@ -494,11 +550,27 @@
             });
     }
 
+    function checkUnreadSummary() {
+        fetch("/unread-message-summary/")
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(data) {
+                updateSidebarBadge(data.total_unread_count);
+                updateUserBadges(data.users);
+            })
+            .catch(function(error) {
+                console.log("알림 갱신 오류:", error);
+            });
+    }
+
     scrollToBottom();
 
     checkMessages();
+    checkUnreadSummary();
 
     setInterval(checkMessages, 3000);
+    setInterval(checkUnreadSummary, 3000);
 </script>
 
 </body>
