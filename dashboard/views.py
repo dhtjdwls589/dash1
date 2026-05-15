@@ -24,8 +24,21 @@ def get_unread_count(user):
     ).count()
 
 
+def get_visible_message_users(current_user):
+    if current_user.is_superuser:
+        return User.objects.exclude(
+            id=current_user.id
+        ).order_by("username")
+
+    return User.objects.filter(
+        is_superuser=True
+    ).exclude(
+        id=current_user.id
+    ).order_by("username")
+
+
 def get_users_with_unread(current_user):
-    users = User.objects.exclude(id=current_user.id).order_by("username")
+    users = get_visible_message_users(current_user)
 
     result = []
 
@@ -259,7 +272,7 @@ def settings_page(request):
 
 @login_required
 def messages_page(request):
-    first_user = User.objects.exclude(id=request.user.id).order_by("id").first()
+    first_user = get_visible_message_users(request.user).order_by("id").first()
 
     if first_user:
         return redirect("direct_chat_page", user_id=first_user.id)
@@ -268,7 +281,7 @@ def messages_page(request):
         request,
         "dashboard/messages.html",
         {
-            "users_with_unread": [],
+            "users_with_unread": get_users_with_unread(request.user),
             "unread_message_count": get_unread_count(request.user),
         }
     )
@@ -278,7 +291,12 @@ def messages_page(request):
 def direct_chat_page(request, user_id):
     other_user = get_object_or_404(User, id=user_id)
 
-    if other_user.id == request.user.id:
+    visible_user_ids = get_visible_message_users(request.user).values_list(
+        "id",
+        flat=True
+    )
+
+    if other_user.id not in visible_user_ids:
         return redirect("messages_page")
 
     chat_messages = DirectMessage.objects.filter(
@@ -317,11 +335,16 @@ def send_message_ajax(request, user_id):
 
     other_user = get_object_or_404(User, id=user_id)
 
-    if other_user.id == request.user.id:
+    visible_user_ids = get_visible_message_users(request.user).values_list(
+        "id",
+        flat=True
+    )
+
+    if other_user.id not in visible_user_ids:
         return JsonResponse({
             "success": False,
-            "error": "자기 자신에게는 보낼 수 없습니다."
-        }, status=400)
+            "error": "메시지를 보낼 권한이 없습니다."
+        }, status=403)
 
     content = request.POST.get("content", "").strip()
 
@@ -352,6 +375,17 @@ def send_message_ajax(request, user_id):
 @login_required
 def fetch_messages(request, user_id):
     other_user = get_object_or_404(User, id=user_id)
+
+    visible_user_ids = get_visible_message_users(request.user).values_list(
+        "id",
+        flat=True
+    )
+
+    if other_user.id not in visible_user_ids:
+        return JsonResponse({
+            "messages": [],
+            "unread_count": get_unread_count(request.user),
+        }, status=403)
 
     messages = DirectMessage.objects.filter(
         Q(sender=request.user, receiver=other_user) |
@@ -386,7 +420,7 @@ def unread_message_summary(request):
     users_data = []
     total_count = 0
 
-    users = User.objects.exclude(id=request.user.id).order_by("username")
+    users = get_visible_message_users(request.user)
 
     for user in users:
         count = DirectMessage.objects.filter(
