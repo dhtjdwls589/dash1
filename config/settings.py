@@ -11,10 +11,8 @@ SECRET_KEY = os.environ.get(
     "django-insecure-local-dev-key"
 )
 
-DEBUG = os.environ.get(
-    "DEBUG",
-    "False"
-) == "True"
+
+DEBUG = os.environ.get("DEBUG", "True") == "True"
 
 
 ALLOWED_HOSTS = [
@@ -40,7 +38,6 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-
     "whitenoise.middleware.WhiteNoiseMiddleware",
 
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -69,15 +66,10 @@ TEMPLATES = [
 
         "OPTIONS": {
             "context_processors": [
-
                 "django.template.context_processors.debug",
-
                 "django.template.context_processors.request",
-
                 "django.contrib.auth.context_processors.auth",
-
                 "django.contrib.messages.context_processors.messages",
-
                 "dashboard.context_processors.unread_messages",
             ],
         },
@@ -90,7 +82,8 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 DATABASES = {
     "default": dj_database_url.config(
-        default=os.environ.get("DATABASE_URL")
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        conn_max_age=600,
     )
 }
 
@@ -124,9 +117,7 @@ STATIC_URL = "/static/"
 
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-STATICFILES_STORAGE = (
-    "whitenoise.storage.CompressedManifestStaticFilesStorage"
-)
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 
 MEDIA_URL = "/media/"
