@@ -2,249 +2,284 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>채팅</title>
 
     <style>
-        *{
-            margin:0;
-            padding:0;
-            box-sizing:border-box;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-        body{
-            font-family:Arial,sans-serif;
-            background:#f1f5f9;
-            color:#222;
+        body {
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            color: #222;
         }
 
-        .layout{
-            display:flex;
-            min-height:100vh;
+        .layout {
+            display: flex;
+            min-height: 100vh;
         }
 
-        .sidebar{
-            width:260px;
-            background:#111827;
-            color:white;
-            padding:24px;
-            position:fixed;
-            left:0;
-            top:0;
-            bottom:0;
-            overflow-y:auto;
+        .sidebar {
+            width: 260px;
+            background: #111827;
+            color: white;
+            padding: 24px;
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            overflow-y: auto;
         }
 
-        .sidebar-title{
-            font-size:24px;
-            font-weight:bold;
-            margin-bottom:10px;
+        .sidebar-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
         }
 
-        .user-box{
-            background:#1f2937;
-            border-radius:12px;
-            padding:14px;
-            margin-bottom:30px;
+        .user-box {
+            background: #1f2937;
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 30px;
         }
 
-        .user-name{
-            font-size:16px;
-            font-weight:bold;
-            margin-bottom:4px;
+        .user-name {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 4px;
         }
 
-        .user-role{
-            font-size:13px;
-            color:#9ca3af;
+        .user-role {
+            font-size: 13px;
+            color: #9ca3af;
         }
 
-        .sidebar-menu{
-            display:flex;
-            flex-direction:column;
-            gap:10px;
+        .sidebar-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
 
-        .sidebar-item{
-            text-decoration:none;
-            color:white;
-            padding:14px 16px;
-            border-radius:12px;
-            transition:0.2s;
-            font-size:15px;
+        .sidebar-item {
+            text-decoration: none;
+            color: white;
+            padding: 14px 16px;
+            border-radius: 12px;
+            transition: 0.2s;
+            font-size: 15px;
         }
 
-        .sidebar-item:hover{
-            background:#374151;
+        .sidebar-item:hover {
+            background: #374151;
         }
 
-        .sidebar-item.active{
-            background:#4f46e5;
+        .sidebar-item.active {
+            background: #4f46e5;
         }
 
-        .logout-btn{
-            margin-top:30px;
-            background:#dc2626;
+        .logout-btn {
+            margin-top: 30px;
+            background: #dc2626;
         }
 
-        .logout-btn:hover{
-            background:#b91c1c;
+        .message-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 22px;
+            height: 22px;
+            padding: 0 7px;
+            margin-left: 8px;
+            border-radius: 999px;
+            background: #ef4444;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
         }
 
-        .message-badge{
-            display:inline-flex;
-            align-items:center;
-            justify-content:center;
-            min-width:22px;
-            height:22px;
-            padding:0 7px;
-            margin-left:8px;
-            border-radius:999px;
-            background:#ef4444;
-            color:white;
-            font-size:12px;
-            font-weight:bold;
+        .content {
+            flex: 1;
+            margin-left: 260px;
+            padding: 32px;
         }
 
-        .content{
-            flex:1;
-            margin-left:260px;
-            padding:32px;
+        .chat-layout {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 24px;
         }
 
-        .chat-card{
-            background:white;
-            border-radius:20px;
-            padding:24px;
-            box-shadow:0 4px 12px rgba(0,0,0,0.05);
+        .user-list-card,
+        .chat-card {
+            background: white;
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
 
-        .chat-title{
-            font-size:28px;
-            font-weight:bold;
-            margin-bottom:24px;
+        .user-link {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 14px;
+            border-radius: 12px;
+            text-decoration: none;
+            color: #111827;
+            margin-bottom: 8px;
+            background: #f8fafc;
         }
 
-        .messages-box{
-            height:500px;
-            overflow-y:auto;
-            background:#f8fafc;
-            border-radius:16px;
-            padding:18px;
-            margin-bottom:20px;
-            display:flex;
-            flex-direction:column;
-            gap:14px;
+        .user-link.active,
+        .user-link:hover {
+            background: #eef2ff;
+            color: #4338ca;
+            font-weight: bold;
         }
 
-        .message-row{
-            display:flex;
+        .user-unread-badge {
+            min-width: 22px;
+            height: 22px;
+            padding: 0 7px;
+            border-radius: 999px;
+            background: #ef4444;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .message-row.mine{
-            justify-content:flex-end;
+        .chat-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
         }
 
-        .message-row.other{
-            justify-content:flex-start;
+        .messages-box {
+            height: 520px;
+            overflow-y: auto;
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 18px;
         }
 
-        .message-bubble{
-            max-width:70%;
-            padding:14px;
-            border-radius:16px;
-            font-size:14px;
-            line-height:1.5;
+        .message-row {
+            display: flex;
         }
 
-        .mine .message-bubble{
-            background:#4f46e5;
-            color:white;
+        .message-row.mine {
+            justify-content: flex-end;
         }
 
-        .other .message-bubble{
-            background:white;
-            border:1px solid #e5e7eb;
+        .message-row.other {
+            justify-content: flex-start;
         }
 
-        .message-meta{
-            font-size:11px;
-            opacity:0.7;
-            margin-top:6px;
+        .message-bubble {
+            max-width: 70%;
+            padding: 12px 14px;
+            border-radius: 16px;
+            font-size: 14px;
+            line-height: 1.5;
+            word-break: break-word;
         }
 
-        form{
-            display:flex;
-            gap:12px;
+        .message-row.mine .message-bubble {
+            background: #4f46e5;
+            color: white;
         }
 
-        textarea{
-            flex:1;
-            resize:none;
-            padding:14px;
-            border-radius:14px;
-            border:1px solid #d1d5db;
-            font-size:14px;
-            height:60px;
+        .message-row.other .message-bubble {
+            background: white;
+            border: 1px solid #e5e7eb;
         }
 
-        button{
-            border:none;
-            background:#4f46e5;
-            color:white;
-            padding:0 22px;
-            border-radius:14px;
-            font-weight:bold;
-            cursor:pointer;
+        .message-meta {
+            font-size: 11px;
+            margin-top: 6px;
+            opacity: 0.75;
         }
 
-        @media(max-width:1000px){
+        form {
+            display: flex;
+            gap: 12px;
+        }
 
-            .layout{
-                flex-direction:column;
+        textarea {
+            flex: 1;
+            height: 64px;
+            resize: none;
+            padding: 14px;
+            border-radius: 14px;
+            border: 1px solid #d1d5db;
+            font-size: 14px;
+        }
+
+        button {
+            border: none;
+            background: #4f46e5;
+            color: white;
+            padding: 0 22px;
+            border-radius: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        @media(max-width: 1000px) {
+            .layout {
+                flex-direction: column;
             }
 
-            .sidebar{
-                position:relative;
-                width:100%;
-                height:auto;
+            .sidebar {
+                position: relative;
+                width: 100%;
+                height: auto;
             }
 
-            .content{
-                margin-left:0;
-                padding:18px;
+            .content {
+                margin-left: 0;
+                padding: 18px;
             }
 
-            .sidebar-menu{
-                display:grid;
-                grid-template-columns:repeat(2,1fr);
+            .chat-layout {
+                grid-template-columns: 1fr;
             }
 
-            .sidebar-item{
-                text-align:center;
+            .sidebar-menu {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .sidebar-item {
+                text-align: center;
             }
         }
 
-        @media(max-width:520px){
-
-            .sidebar-menu{
-                grid-template-columns:1fr;
+        @media(max-width: 520px) {
+            .sidebar-menu {
+                grid-template-columns: 1fr;
             }
 
-            .chat-title{
-                font-size:22px;
+            form {
+                flex-direction: column;
             }
 
-            form{
-                flex-direction:column;
+            button {
+                padding: 14px;
             }
 
-            button{
-                padding:14px;
-            }
-
-            .message-bubble{
-                max-width:90%;
+            .message-bubble {
+                max-width: 90%;
             }
         }
     </style>
@@ -255,127 +290,100 @@
 <div class="layout">
 
     <aside class="sidebar">
-
-        <div class="sidebar-title">
-            🚀 Dashboard
-        </div>
+        <div class="sidebar-title">🚀 Dashboard</div>
 
         <div class="user-box">
-
-            <div class="user-name">
-                {{ request.user.username }}
-            </div>
+            <div class="user-name">{{ request.user.username }}</div>
 
             <div class="user-role">
-
                 {% if request.user.is_superuser %}
                     슈퍼관리자
-
                 {% elif request.user.is_staff %}
                     직원 계정
-
                 {% else %}
                     일반 회원
-
                 {% endif %}
-
             </div>
-
         </div>
 
         <div class="sidebar-menu">
-
-            <a href="/" class="sidebar-item">
-                📊 대시보드
-            </a>
-
-            <a href="/projects/" class="sidebar-item">
-                📁 프로젝트
-            </a>
-
-            <a href="/tasks/" class="sidebar-item">
-                ✅ 작업 리스트
-            </a>
-
-            <a href="/stats/" class="sidebar-item">
-                📈 통계
-            </a>
+            <a href="/" class="sidebar-item">📊 대시보드</a>
+            <a href="/projects/" class="sidebar-item">📁 프로젝트</a>
+            <a href="/tasks/" class="sidebar-item">✅ 작업 리스트</a>
+            <a href="/stats/" class="sidebar-item">📈 통계</a>
 
             <a href="/messages/" class="sidebar-item active">
                 💬 메신저
-
                 {% if unread_message_count > 0 %}
-                <span class="message-badge">
-                    {{ unread_message_count }}
-                </span>
+                <span class="message-badge">{{ unread_message_count }}</span>
                 {% endif %}
             </a>
 
-            <a href="/settings/" class="sidebar-item">
-                ⚙ 설정
-            </a>
+            <a href="/settings/" class="sidebar-item">⚙ 설정</a>
 
             {% if request.user.is_superuser %}
-            <a href="/admin/" class="sidebar-item">
-                👑 관리자 페이지
-            </a>
+            <a href="/admin/" class="sidebar-item">👑 관리자 페이지</a>
             {% endif %}
 
-            <a href="{% url 'logout' %}" class="sidebar-item logout-btn">
-                🚪 로그아웃
-            </a>
-
+            <a href="{% url 'logout' %}" class="sidebar-item logout-btn">🚪 로그아웃</a>
         </div>
-
     </aside>
 
     <main class="content">
 
-        <div class="chat-card">
+        <div class="chat-layout">
 
-            <div class="chat-title">
-                {{ other_user.username }} 님과의 대화
+            <div class="user-list-card">
+                {% for item in users_with_unread %}
+                <a
+                    href="{% url 'direct_chat_page' item.user.id %}"
+                    class="user-link {% if other_user.id == item.user.id %}active{% endif %}"
+                >
+                    <span>👤 {{ item.user.username }}</span>
+
+                    {% if item.unread_count > 0 %}
+                    <span class="user-unread-badge">
+                        {{ item.unread_count }}
+                    </span>
+                    {% endif %}
+                </a>
+                {% empty %}
+                <p>사용자가 없습니다.</p>
+                {% endfor %}
             </div>
 
-            <div class="messages-box" id="messagesBox">
-
-                {% for message in chat_messages %}
-
-                <div class="message-row {% if message.sender == request.user %}mine{% else %}other{% endif %}">
-
-                    <div class="message-bubble">
-
-                        <div>
-                            {{ message.content }}
-                        </div>
-
-                        <div class="message-meta">
-                            {{ message.created_at|date:"Y-m-d H:i" }}
-                        </div>
-
-                    </div>
-
+            <div class="chat-card">
+                <div class="chat-title">
+                    {{ other_user.username }} 님과의 대화
                 </div>
 
-                {% empty %}
+                <div class="messages-box" id="messagesBox">
+                    {% for message in chat_messages %}
+                    <div class="message-row {% if message.sender == request.user %}mine{% else %}other{% endif %}">
+                        <div class="message-bubble">
+                            <div>
+                                {{ message.content }}
+                            </div>
 
-                <p>아직 메시지가 없습니다.</p>
+                            <div class="message-meta">
+                                {{ message.created_at|date:"Y-m-d H:i" }}
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p>아직 메시지가 없습니다.</p>
+                    {% endfor %}
+                </div>
 
-                {% endfor %}
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form.content }}
 
+                    <button type="submit">
+                        보내기
+                    </button>
+                </form>
             </div>
-
-            <form method="post">
-
-                {% csrf_token %}
-
-                {{ form.content }}
-
-                <button type="submit">
-                    보내기
-                </button>
-
-            </form>
 
         </div>
 

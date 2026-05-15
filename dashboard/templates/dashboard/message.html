@@ -2,213 +2,201 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>메신저</title>
 
     <style>
-        *{
-            margin:0;
-            padding:0;
-            box-sizing:border-box;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-        body{
-            font-family:Arial,sans-serif;
-            background:#f1f5f9;
-            color:#222;
+        body {
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            color: #222;
         }
 
-        .layout{
-            display:flex;
-            min-height:100vh;
+        .layout {
+            display: flex;
+            min-height: 100vh;
         }
 
-        .sidebar{
-            width:260px;
-            background:#111827;
-            color:white;
-            padding:24px;
-            position:fixed;
-            left:0;
-            top:0;
-            bottom:0;
-            overflow-y:auto;
+        .sidebar {
+            width: 260px;
+            background: #111827;
+            color: white;
+            padding: 24px;
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            overflow-y: auto;
         }
 
-        .sidebar-title{
-            font-size:24px;
-            font-weight:bold;
-            margin-bottom:10px;
+        .sidebar-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
         }
 
-        .user-box{
-            background:#1f2937;
-            border-radius:12px;
-            padding:14px;
-            margin-bottom:30px;
+        .user-box {
+            background: #1f2937;
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 30px;
         }
 
-        .user-name{
-            font-size:16px;
-            font-weight:bold;
-            margin-bottom:4px;
+        .user-name {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 4px;
         }
 
-        .user-role{
-            font-size:13px;
-            color:#9ca3af;
+        .user-role {
+            font-size: 13px;
+            color: #9ca3af;
         }
 
-        .sidebar-menu{
-            display:flex;
-            flex-direction:column;
-            gap:10px;
+        .sidebar-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
 
-        .sidebar-item{
-            text-decoration:none;
-            color:white;
-            padding:14px 16px;
-            border-radius:12px;
-            transition:0.2s;
-            font-size:15px;
+        .sidebar-item {
+            text-decoration: none;
+            color: white;
+            padding: 14px 16px;
+            border-radius: 12px;
+            transition: 0.2s;
+            font-size: 15px;
         }
 
-        .sidebar-item:hover{
-            background:#374151;
+        .sidebar-item:hover {
+            background: #374151;
         }
 
-        .sidebar-item.active{
-            background:#4f46e5;
+        .sidebar-item.active {
+            background: #4f46e5;
         }
 
-        .logout-btn{
-            margin-top:30px;
-            background:#dc2626;
+        .logout-btn {
+            margin-top: 30px;
+            background: #dc2626;
         }
 
-        .logout-btn:hover{
-            background:#b91c1c;
+        .message-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 22px;
+            height: 22px;
+            padding: 0 7px;
+            margin-left: 8px;
+            border-radius: 999px;
+            background: #ef4444;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
         }
 
-        .message-badge{
-            display:inline-flex;
-            align-items:center;
-            justify-content:center;
-            min-width:22px;
-            height:22px;
-            padding:0 7px;
-            margin-left:8px;
-            border-radius:999px;
-            background:#ef4444;
-            color:white;
-            font-size:12px;
-            font-weight:bold;
+        .content {
+            flex: 1;
+            margin-left: 260px;
+            padding: 32px;
         }
 
-        .content{
-            flex:1;
-            margin-left:260px;
-            padding:32px;
+        .page-title {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 24px;
         }
 
-        .page-title{
-            font-size:32px;
-            font-weight:bold;
-            margin-bottom:30px;
+        .user-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 18px;
         }
 
-        .user-list{
-            display:grid;
-            grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-            gap:18px;
+        .user-card {
+            background: white;
+            border-radius: 20px;
+            padding: 22px;
+            text-decoration: none;
+            color: #111827;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
 
-        .user-card{
-            background:white;
-            border-radius:20px;
-            padding:22px;
-            text-decoration:none;
-            color:#111827;
-            box-shadow:0 4px 12px rgba(0,0,0,0.05);
-            transition:0.2s;
+        .user-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
         }
 
-        .user-card:hover{
-            transform:translateY(-3px);
+        .user-icon {
+            font-size: 28px;
         }
 
-        .user-top{
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
-            margin-bottom:12px;
+        .user-unread {
+            min-width: 24px;
+            height: 24px;
+            padding: 0 8px;
+            border-radius: 999px;
+            background: #ef4444;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .user-emoji{
-            font-size:26px;
+        .username {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 8px;
         }
 
-        .user-unread{
-            min-width:24px;
-            height:24px;
-            padding:0 8px;
-            border-radius:999px;
-            background:#ef4444;
-            color:white;
-            font-size:12px;
-            font-weight:bold;
-            display:flex;
-            align-items:center;
-            justify-content:center;
+        .user-role-label {
+            font-size: 13px;
+            color: #64748b;
         }
 
-        .username{
-            font-size:18px;
-            font-weight:bold;
-            margin-bottom:8px;
-        }
-
-        .user-role-label{
-            font-size:13px;
-            color:#64748b;
-        }
-
-        @media(max-width:1000px){
-
-            .layout{
-                flex-direction:column;
+        @media(max-width: 1000px) {
+            .layout {
+                flex-direction: column;
             }
 
-            .sidebar{
-                position:relative;
-                width:100%;
-                height:auto;
+            .sidebar {
+                position: relative;
+                width: 100%;
+                height: auto;
             }
 
-            .content{
-                margin-left:0;
-                padding:18px;
+            .content {
+                margin-left: 0;
+                padding: 18px;
             }
 
-            .sidebar-menu{
-                display:grid;
-                grid-template-columns:repeat(2,1fr);
+            .sidebar-menu {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
             }
 
-            .sidebar-item{
-                text-align:center;
+            .sidebar-item {
+                text-align: center;
             }
         }
 
-        @media(max-width:520px){
-
-            .sidebar-menu{
-                grid-template-columns:1fr;
+        @media(max-width: 520px) {
+            .sidebar-menu {
+                grid-template-columns: 1fr;
             }
 
-            .page-title{
-                font-size:24px;
+            .page-title {
+                font-size: 24px;
             }
         }
     </style>
@@ -219,107 +207,59 @@
 <div class="layout">
 
     <aside class="sidebar">
-
-        <div class="sidebar-title">
-            🚀 Dashboard
-        </div>
+        <div class="sidebar-title">🚀 Dashboard</div>
 
         <div class="user-box">
-
-            <div class="user-name">
-                {{ request.user.username }}
-            </div>
+            <div class="user-name">{{ request.user.username }}</div>
 
             <div class="user-role">
-
                 {% if request.user.is_superuser %}
                     슈퍼관리자
-
                 {% elif request.user.is_staff %}
                     직원 계정
-
                 {% else %}
                     일반 회원
-
                 {% endif %}
-
             </div>
-
         </div>
 
         <div class="sidebar-menu">
-
-            <a href="/" class="sidebar-item">
-                📊 대시보드
-            </a>
-
-            <a href="/projects/" class="sidebar-item">
-                📁 프로젝트
-            </a>
-
-            <a href="/tasks/" class="sidebar-item">
-                ✅ 작업 리스트
-            </a>
-
-            <a href="/stats/" class="sidebar-item">
-                📈 통계
-            </a>
+            <a href="/" class="sidebar-item">📊 대시보드</a>
+            <a href="/projects/" class="sidebar-item">📁 프로젝트</a>
+            <a href="/tasks/" class="sidebar-item">✅ 작업 리스트</a>
+            <a href="/stats/" class="sidebar-item">📈 통계</a>
 
             <a href="/messages/" class="sidebar-item active">
                 💬 메신저
-
                 {% if unread_message_count > 0 %}
-                <span class="message-badge">
-                    {{ unread_message_count }}
-                </span>
+                <span class="message-badge">{{ unread_message_count }}</span>
                 {% endif %}
             </a>
 
-            <a href="/settings/" class="sidebar-item">
-                ⚙ 설정
-            </a>
+            <a href="/settings/" class="sidebar-item">⚙ 설정</a>
 
             {% if request.user.is_superuser %}
-            <a href="/admin/" class="sidebar-item">
-                👑 관리자 페이지
-            </a>
+            <a href="/admin/" class="sidebar-item">👑 관리자 페이지</a>
             {% endif %}
 
-            <a href="{% url 'logout' %}" class="sidebar-item logout-btn">
-                🚪 로그아웃
-            </a>
-
+            <a href="{% url 'logout' %}" class="sidebar-item logout-btn">🚪 로그아웃</a>
         </div>
-
     </aside>
 
     <main class="content">
-
-        <div class="page-title">
-            메신저
-        </div>
+        <div class="page-title">메신저</div>
 
         <div class="user-list">
-
             {% for item in users_with_unread %}
-
-            <a
-                href="{% url 'direct_chat_page' item.user.id %}"
-                class="user-card"
-            >
-
+            <a href="{% url 'direct_chat_page' item.user.id %}" class="user-card">
                 <div class="user-top">
-
-                    <div class="user-emoji">
-                        👤
-                    </div>
+                    <div class="user-icon">👤</div>
 
                     {% if item.unread_count > 0 %}
                     <div class="user-unread">
                         {{ item.unread_count }}
                     </div>
                     {% endif %}
-
                 </div>
 
                 <div class="username">
@@ -327,30 +267,19 @@
                 </div>
 
                 <div class="user-role-label">
-
                     {% if item.user.is_superuser %}
                         슈퍼관리자
-
                     {% elif item.user.is_staff %}
                         직원 계정
-
                     {% else %}
                         일반 회원
-
                     {% endif %}
-
                 </div>
-
             </a>
-
             {% empty %}
-
-            <p>사용자가 없습니다.</p>
-
+            <p>대화할 사용자가 없습니다.</p>
             {% endfor %}
-
         </div>
-
     </main>
 
 </div>
