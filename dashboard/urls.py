@@ -17,6 +17,12 @@ urlpatterns = [
     path("messages/<int:user_id>/", views.direct_chat_page, name="direct_chat_page"),
 
     path(
+        "send-message/<int:user_id>/",
+        views.send_message_ajax,
+        name="send_message_ajax"
+    ),
+
+    path(
         "fetch-messages/<int:user_id>/",
         views.fetch_messages,
         name="fetch_messages"

@@ -312,10 +312,12 @@
             <a href="/tasks/" class="sidebar-item">✅ 작업 리스트</a>
             <a href="/stats/" class="sidebar-item">📈 통계</a>
 
-            <a href="/messages/" class="sidebar-item active">
+            <a href="/messages/1/" class="sidebar-item active">
                 💬 메신저
                 {% if unread_message_count > 0 %}
-                <span class="message-badge">{{ unread_message_count }}</span>
+                <span id="globalMessageBadge" class="message-badge">
+                    {{ unread_message_count }}
+                </span>
                 {% endif %}
             </a>
 
@@ -341,11 +343,13 @@
                 >
                     <span>👤 {{ item.user.username }}</span>
 
-                    {% if item.unread_count > 0 %}
-                    <span class="user-unread-badge">
+                    <span
+                        id="userBadge{{ item.user.id }}"
+                        class="user-unread-badge"
+                        style="{% if item.unread_count == 0 %}display:none;{% endif %}"
+                    >
                         {{ item.unread_count }}
                     </span>
-                    {% endif %}
                 </a>
                 {% empty %}
                 <p>사용자가 없습니다.</p>
@@ -375,7 +379,7 @@
                     {% endfor %}
                 </div>
 
-                <form method="post">
+                <form id="messageForm">
                     {% csrf_token %}
                     {{ form.content }}
 
@@ -393,10 +397,172 @@
 
 <script>
     const messagesBox = document.getElementById("messagesBox");
+    const messageForm = document.getElementById("messageForm");
+    const textarea = messageForm.querySelector("textarea");
 
-    if (messagesBox) {
-        messagesBox.scrollTop = messagesBox.scrollHeight;
+    let lastMessageIds = new Set();
+
+    function getCsrfToken() {
+        return document.querySelector("[name=csrfmiddlewaretoken]").value;
     }
+
+    function escapeHtml(text) {
+        const div = document.createElement("div");
+        div.innerText = text;
+        return div.innerHTML;
+    }
+
+    function scrollToBottom() {
+        if (messagesBox) {
+            messagesBox.scrollTop = messagesBox.scrollHeight;
+        }
+    }
+
+    function renderMessages(messages) {
+        messagesBox.innerHTML = "";
+
+        if (messages.length === 0) {
+            messagesBox.innerHTML = "<p>아직 메시지가 없습니다.</p>";
+            return;
+        }
+
+        messages.forEach(function(message) {
+            const row = document.createElement("div");
+
+            row.className = message.is_mine
+                ? "message-row mine"
+                : "message-row other";
+
+            row.innerHTML = `
+                <div class="message-bubble">
+                    <div>${escapeHtml(message.content)}</div>
+                    <div class="message-meta">${message.created_at}</div>
+                </div>
+            `;
+
+            messagesBox.appendChild(row);
+        });
+
+        scrollToBottom();
+    }
+
+    function playAlarm() {
+        const audio = new Audio("https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg");
+
+        audio.play().catch(function() {
+            console.log("브라우저에서 알림음이 차단되었습니다.");
+        });
+    }
+
+    function updateUserBadges(users) {
+        users.forEach(function(user) {
+            const badge = document.getElementById(`userBadge${user.user_id}`);
+
+            if (!badge) {
+                return;
+            }
+
+            if (user.unread_count > 0) {
+                badge.style.display = "flex";
+                badge.innerText = user.unread_count;
+            } else {
+                badge.style.display = "none";
+                badge.innerText = "0";
+            }
+        });
+    }
+
+    function updateGlobalBadge(count) {
+        let badge = document.getElementById("globalMessageBadge");
+
+        if (count > 0) {
+            document.title = `(${count}) 새 메시지`;
+
+            if (badge) {
+                badge.style.display = "inline-flex";
+                badge.innerText = count;
+            }
+        } else {
+            document.title = "채팅";
+
+            if (badge) {
+                badge.style.display = "none";
+            }
+        }
+    }
+
+    function fetchMessages() {
+        fetch("/fetch-messages/{{ other_user.id }}/")
+            .then(response => response.json())
+            .then(data => {
+                const newIds = new Set(data.messages.map(message => message.id));
+
+                let hasNewMessage = false;
+
+                data.messages.forEach(function(message) {
+                    if (!message.is_mine && !lastMessageIds.has(message.id)) {
+                        hasNewMessage = true;
+                    }
+                });
+
+                renderMessages(data.messages);
+
+                if (lastMessageIds.size > 0 && hasNewMessage) {
+                    playAlarm();
+                }
+
+                lastMessageIds = newIds;
+
+                updateGlobalBadge(data.unread_count);
+            });
+    }
+
+    function fetchUnreadSummary() {
+        fetch("/unread-message-summary/")
+            .then(response => response.json())
+            .then(data => {
+                updateGlobalBadge(data.total_unread_count);
+                updateUserBadges(data.users);
+            });
+    }
+
+    messageForm.addEventListener("submit", function(event) {
+        event.preventDefault();
+
+        const content = textarea.value.trim();
+
+        if (!content) {
+            return;
+        }
+
+        const formData = new FormData();
+
+        formData.append("content", content);
+
+        fetch("/send-message/{{ other_user.id }}/", {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": getCsrfToken()
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                textarea.value = "";
+                fetchMessages();
+                fetchUnreadSummary();
+            }
+        });
+    });
+
+    scrollToBottom();
+
+    fetchMessages();
+    fetchUnreadSummary();
+
+    setInterval(fetchMessages, 3000);
+    setInterval(fetchUnreadSummary, 3000);
 </script>
 
 </body>

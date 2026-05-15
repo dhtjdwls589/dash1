@@ -25,9 +25,7 @@ def get_unread_count(user):
 
 
 def get_users_with_unread(current_user):
-    users = User.objects.exclude(
-        id=current_user.id
-    ).order_by("username")
+    users = User.objects.exclude(id=current_user.id).order_by("username")
 
     result = []
 
@@ -56,18 +54,11 @@ def login_page(request):
         if form.is_valid():
             user = form.get_user()
             login(request, user)
-
             return redirect("dashboard_index")
     else:
         form = AuthenticationForm()
 
-    return render(
-        request,
-        "dashboard/login.html",
-        {
-            "form": form,
-        }
-    )
+    return render(request, "dashboard/login.html", {"form": form})
 
 
 def register_page(request):
@@ -84,23 +75,15 @@ def register_page(request):
             user.save()
 
             login(request, user)
-
             return redirect("dashboard_index")
     else:
         form = UserCreationForm()
 
-    return render(
-        request,
-        "dashboard/register.html",
-        {
-            "form": form,
-        }
-    )
+    return render(request, "dashboard/register.html", {"form": form})
 
 
 def logout_page(request):
     logout(request)
-
     return redirect("login")
 
 
@@ -130,7 +113,6 @@ def index(request):
 
         if form.is_valid():
             form.save()
-
             return redirect("dashboard_index")
     else:
         form = TaskForm()
@@ -175,7 +157,6 @@ def projects_page(request):
 
         if form.is_valid():
             form.save()
-
             return redirect("projects_page")
     else:
         form = ProjectForm()
@@ -278,13 +259,16 @@ def settings_page(request):
 
 @login_required
 def messages_page(request):
-    users_with_unread = get_users_with_unread(request.user)
+    first_user = User.objects.exclude(id=request.user.id).order_by("id").first()
+
+    if first_user:
+        return redirect("direct_chat_page", user_id=first_user.id)
 
     return render(
         request,
         "dashboard/messages.html",
         {
-            "users_with_unread": users_with_unread,
+            "users_with_unread": [],
             "unread_message_count": get_unread_count(request.user),
         }
     )
@@ -308,21 +292,7 @@ def direct_chat_page(request, user_id):
         is_read=False
     ).update(is_read=True)
 
-    if request.method == "POST":
-        form = DirectMessageForm(request.POST)
-
-        if form.is_valid():
-            message = form.save(commit=False)
-            message.sender = request.user
-            message.receiver = other_user
-            message.save()
-
-            return redirect(
-                "direct_chat_page",
-                user_id=other_user.id
-            )
-    else:
-        form = DirectMessageForm()
+    form = DirectMessageForm()
 
     return render(
         request,
@@ -335,6 +305,48 @@ def direct_chat_page(request, user_id):
             "unread_message_count": get_unread_count(request.user),
         }
     )
+
+
+@login_required
+def send_message_ajax(request, user_id):
+    if request.method != "POST":
+        return JsonResponse({
+            "success": False,
+            "error": "POST 요청만 가능합니다."
+        }, status=405)
+
+    other_user = get_object_or_404(User, id=user_id)
+
+    if other_user.id == request.user.id:
+        return JsonResponse({
+            "success": False,
+            "error": "자기 자신에게는 보낼 수 없습니다."
+        }, status=400)
+
+    content = request.POST.get("content", "").strip()
+
+    if not content:
+        return JsonResponse({
+            "success": False,
+            "error": "메시지를 입력하세요."
+        }, status=400)
+
+    message = DirectMessage.objects.create(
+        sender=request.user,
+        receiver=other_user,
+        content=content
+    )
+
+    return JsonResponse({
+        "success": True,
+        "message": {
+            "id": message.id,
+            "content": message.content,
+            "sender": message.sender.username,
+            "is_mine": True,
+            "created_at": message.created_at.strftime("%Y-%m-%d %H:%M"),
+        }
+    })
 
 
 @login_required
@@ -374,9 +386,7 @@ def unread_message_summary(request):
     users_data = []
     total_count = 0
 
-    users = User.objects.exclude(
-        id=request.user.id
-    ).order_by("username")
+    users = User.objects.exclude(id=request.user.id).order_by("username")
 
     for user in users:
         count = DirectMessage.objects.filter(
@@ -431,7 +441,6 @@ def edit_task(request, task_id):
 
         if form.is_valid():
             form.save()
-
             return redirect("dashboard_index")
     else:
         form = TaskForm(instance=task)
