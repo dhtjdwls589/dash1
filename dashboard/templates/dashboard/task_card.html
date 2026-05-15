@@ -4,13 +4,19 @@
     ondragstart="drag(event)"
     data-task-id="{{ task.id }}"
 >
-    <div class="task-title">{{ task.name }}</div>
+    <div class="task-title">
+        {{ task.name }}
+    </div>
 
     {% if task.project %}
-    <div class="task-project">📁 {{ task.project.name }}</div>
+    <div class="task-project">
+        📁 {{ task.project.name }}
+    </div>
     {% endif %}
 
-    <div class="task-memo">{{ task.memo }}</div>
+    <div class="task-memo">
+        {{ task.memo }}
+    </div>
 
     {% if request.user.is_staff or request.user.is_superuser %}
     <select class="mobile-status-select" onchange="changeStatus(this, '{{ task.id }}')">
@@ -47,8 +53,13 @@
         <div class="comments-list">
             {% for comment in task.comments.all %}
             <div class="comment-item">
-                <div class="comment-author">{{ comment.author.username }}</div>
-                <div class="comment-content">{{ comment.content }}</div>
+                <div class="comment-author">
+                    {{ comment.author.username }}
+                </div>
+
+                <div class="comment-content">
+                    {{ comment.content }}
+                </div>
 
                 <div class="comment-bottom">
                     <div class="comment-date">
@@ -63,14 +74,20 @@
                 </div>
             </div>
             {% empty %}
-            <div class="no-comments">댓글이 없습니다.</div>
+            <div class="no-comments">
+                댓글이 없습니다.
+            </div>
             {% endfor %}
         </div>
 
         <form method="post" action="{% url 'add_comment' task.id %}">
             {% csrf_token %}
+
             <textarea name="content" placeholder="댓글 입력..."></textarea>
-            <button type="submit">댓글 작성</button>
+
+            <button type="submit">
+                댓글 작성
+            </button>
         </form>
     </div>
 </div>

@@ -6,7 +6,11 @@
     <title>대시보드</title>
 
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
         body {
             font-family: Arial, sans-serif;
@@ -14,7 +18,10 @@
             color: #222;
         }
 
-        .layout { display: flex; min-height: 100vh; }
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
 
         .sidebar {
             width: 260px;
@@ -67,15 +74,22 @@
             font-size: 15px;
         }
 
-        .sidebar-item:hover { background: #374151; }
-        .sidebar-item.active { background: #4f46e5; }
+        .sidebar-item:hover {
+            background: #374151;
+        }
+
+        .sidebar-item.active {
+            background: #4f46e5;
+        }
 
         .logout-btn {
             margin-top: 30px;
             background: #dc2626;
         }
 
-        .logout-btn:hover { background: #b91c1c; }
+        .logout-btn:hover {
+            background: #b91c1c;
+        }
 
         .message-badge {
             display: inline-flex;
@@ -131,9 +145,13 @@
 
         .main-grid {
             display: grid;
-            grid-template-columns: 420px 1fr;
+            grid-template-columns: 1fr;
             gap: 24px;
             align-items: start;
+        }
+
+        .main-grid.with-form {
+            grid-template-columns: 420px 1fr;
         }
 
         .card {
@@ -155,7 +173,9 @@
             gap: 14px;
         }
 
-        input, textarea, select {
+        input,
+        textarea,
+        select {
             width: 100%;
             padding: 12px;
             border: 1px solid #d1d5db;
@@ -174,15 +194,20 @@
             cursor: pointer;
         }
 
-        button:hover { background: #4338ca; }
+        button:hover {
+            background: #4338ca;
+        }
 
-        .kanban-wrapper { overflow-x: auto; }
+        .kanban-wrapper {
+            width: 100%;
+            overflow-x: auto;
+        }
 
         .kanban-board {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(3, minmax(300px, 1fr));
             gap: 20px;
-            min-width: 900px;
+            width: 100%;
         }
 
         .kanban-column {
@@ -270,8 +295,13 @@
             font-weight: bold;
         }
 
-        .edit-btn { background: #2563eb; }
-        .delete-btn { background: #dc2626; }
+        .edit-btn {
+            background: #2563eb;
+        }
+
+        .delete-btn {
+            background: #dc2626;
+        }
 
         .attachment-link {
             display: inline-block;
@@ -350,8 +380,16 @@
             margin-bottom: 14px;
         }
 
+        @media(max-width: 1200px) {
+            .main-grid.with-form {
+                grid-template-columns: 1fr;
+            }
+        }
+
         @media(max-width: 1000px) {
-            .layout { flex-direction: column; }
+            .layout {
+                flex-direction: column;
+            }
 
             .sidebar {
                 position: relative;
@@ -369,10 +407,8 @@
                 grid-template-columns: repeat(2, 1fr);
             }
 
-            .sidebar-item { text-align: center; }
-
-            .main-grid {
-                grid-template-columns: 1fr;
+            .sidebar-item {
+                text-align: center;
             }
 
             .kanban-wrapper {
@@ -380,7 +416,6 @@
             }
 
             .kanban-board {
-                min-width: 0;
                 grid-template-columns: 1fr;
             }
 
@@ -395,9 +430,17 @@
         }
 
         @media(max-width: 520px) {
-            .sidebar-menu { grid-template-columns: 1fr; }
-            .stats-grid { grid-template-columns: 1fr; }
-            .page-title { font-size: 24px; }
+            .sidebar-menu {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .page-title {
+                font-size: 24px;
+            }
         }
     </style>
 </head>
@@ -411,6 +454,7 @@
 
         <div class="user-box">
             <div class="user-name">{{ request.user.username }}</div>
+
             <div class="user-role">
                 {% if request.user.is_superuser %}
                     슈퍼관리자
@@ -471,7 +515,7 @@
             </div>
         </div>
 
-        <div class="main-grid">
+        <div class="main-grid {% if request.user.is_staff or request.user.is_superuser %}with-form{% endif %}">
 
             {% if request.user.is_staff or request.user.is_superuser %}
             <div class="card">
@@ -493,7 +537,7 @@
                         <div class="column-title">📌 예정</div>
 
                         {% for task in todo_tasks %}
-                        {% include "dashboard/task_card.html" with task=task current_status="예정" %}
+                            {% include "dashboard/task_card.html" with task=task current_status="예정" %}
                         {% endfor %}
                     </div>
 
@@ -501,7 +545,7 @@
                         <div class="column-title">🚧 진행 중</div>
 
                         {% for task in progress_tasks %}
-                        {% include "dashboard/task_card.html" with task=task current_status="진행 중" %}
+                            {% include "dashboard/task_card.html" with task=task current_status="진행 중" %}
                         {% endfor %}
                     </div>
 
@@ -509,7 +553,7 @@
                         <div class="column-title">✅ 완료</div>
 
                         {% for task in done_tasks %}
-                        {% include "dashboard/task_card.html" with task=task current_status="완료" %}
+                            {% include "dashboard/task_card.html" with task=task current_status="완료" %}
                         {% endfor %}
                     </div>
 
