@@ -2,268 +2,254 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>작업 리스트</title>
 
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
         }
 
-        body {
-            font-family: Arial, sans-serif;
-            background: #f1f5f9;
-            color: #222;
+        body{
+            font-family:Arial,sans-serif;
+            background:#f1f5f9;
+            color:#222;
         }
 
-        .layout {
-            display: flex;
-            min-height: 100vh;
+        .layout{
+            display:flex;
+            min-height:100vh;
         }
 
-        .sidebar {
-            width: 260px;
-            background: #111827;
-            color: white;
-            padding: 24px;
-            position: fixed;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            overflow-y: auto;
+        .sidebar{
+            width:260px;
+            background:#111827;
+            color:white;
+            padding:24px;
+            position:fixed;
+            left:0;
+            top:0;
+            bottom:0;
+            overflow-y:auto;
         }
 
-        .sidebar-title {
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 10px;
+        .sidebar-title{
+            font-size:24px;
+            font-weight:bold;
+            margin-bottom:10px;
         }
 
-        .user-box {
-            background: #1f2937;
-            border-radius: 12px;
-            padding: 14px;
-            margin-bottom: 30px;
+        .user-box{
+            background:#1f2937;
+            border-radius:12px;
+            padding:14px;
+            margin-bottom:30px;
         }
 
-        .user-name {
-            font-size: 16px;
-            font-weight: bold;
-            margin-bottom: 4px;
+        .user-name{
+            font-size:16px;
+            font-weight:bold;
+            margin-bottom:4px;
         }
 
-        .user-role {
-            font-size: 13px;
-            color: #9ca3af;
+        .user-role{
+            font-size:13px;
+            color:#9ca3af;
         }
 
-        .sidebar-menu {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+        .sidebar-menu{
+            display:flex;
+            flex-direction:column;
+            gap:10px;
         }
 
-        .sidebar-item {
-            text-decoration: none;
-            color: white;
-            padding: 14px 16px;
-            border-radius: 12px;
-            transition: 0.2s;
-            font-size: 15px;
+        .sidebar-item{
+            text-decoration:none;
+            color:white;
+            padding:14px 16px;
+            border-radius:12px;
+            transition:0.2s;
+            font-size:15px;
         }
 
-        .sidebar-item:hover {
-            background: #374151;
+        .sidebar-item:hover{
+            background:#374151;
         }
 
-        .sidebar-item.active {
-            background: #4f46e5;
+        .sidebar-item.active{
+            background:#4f46e5;
         }
 
-        .logout-btn {
-            margin-top: 30px;
-            background: #dc2626;
+        .logout-btn{
+            margin-top:30px;
+            background:#dc2626;
         }
 
-        .logout-btn:hover {
-            background: #b91c1c;
+        .logout-btn:hover{
+            background:#b91c1c;
         }
 
-        .content {
-            flex: 1;
-            margin-left: 260px;
-            padding: 32px;
+        .message-badge{
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            min-width:22px;
+            height:22px;
+            padding:0 7px;
+            margin-left:8px;
+            border-radius:999px;
+            background:#ef4444;
+            color:white;
+            font-size:12px;
+            font-weight:bold;
         }
 
-        .page-title {
-            font-size: 32px;
-            font-weight: bold;
-            margin-bottom: 24px;
+        .content{
+            flex:1;
+            margin-left:260px;
+            padding:32px;
         }
 
-        .card {
-            background: white;
-            border-radius: 20px;
-            padding: 24px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        .page-title{
+            font-size:32px;
+            font-weight:bold;
+            margin-bottom:24px;
         }
 
-        .search-form {
-            display: grid;
-            grid-template-columns: 1fr 110px 110px;
-            gap: 12px;
-            margin-bottom: 18px;
-            align-items: end;
+        .search-form{
+            background:white;
+            border-radius:18px;
+            padding:20px;
+            margin-bottom:24px;
+            box-shadow:0 4px 12px rgba(0,0,0,0.05);
         }
 
-        label {
-            display: block;
-            font-size: 14px;
-            color: #555;
-            margin-bottom: 8px;
+        .search-row{
+            display:flex;
+            gap:12px;
         }
 
-        .form-input {
-            width: 100%;
-            box-sizing: border-box;
-            padding: 12px 14px;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            font-size: 15px;
+        .search-input{
+            flex:1;
+            padding:12px;
+            border:1px solid #d1d5db;
+            border-radius:12px;
+            font-size:14px;
         }
 
-        .search-btn {
-            padding: 12px 16px;
-            border: none;
-            border-radius: 10px;
-            background: #111827;
-            color: white;
-            font-size: 15px;
-            font-weight: bold;
-            cursor: pointer;
+        .search-btn{
+            border:none;
+            background:#4f46e5;
+            color:white;
+            padding:12px 18px;
+            border-radius:12px;
+            font-weight:bold;
+            cursor:pointer;
         }
 
-        .reset-btn {
-            padding: 12px 16px;
-            border-radius: 10px;
-            background: #e5e7eb;
-            color: #111827;
-            font-size: 15px;
-            font-weight: bold;
-            text-decoration: none;
-            text-align: center;
-            box-sizing: border-box;
+        .task-grid{
+            display:grid;
+            grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+            gap:20px;
         }
 
-        .table-scroll {
-            max-height: 650px;
-            overflow: auto;
-            border-radius: 12px;
+        .task-card{
+            background:white;
+            border-radius:20px;
+            padding:24px;
+            box-shadow:0 4px 12px rgba(0,0,0,0.05);
         }
 
-        table {
-            width: 100%;
-            min-width: 1100px;
-            border-collapse: collapse;
+        .task-title{
+            font-size:20px;
+            font-weight:bold;
+            margin-bottom:10px;
         }
 
-        th {
-            position: sticky;
-            top: 0;
-            background: white;
-            z-index: 5;
-            text-align: left;
-            padding: 12px;
-            border-bottom: 1px solid #ddd;
-            color: #555;
+        .task-project{
+            color:#4f46e5;
+            font-weight:bold;
+            margin-bottom:10px;
         }
 
-        td {
-            padding: 14px 12px;
-            border-bottom: 1px solid #eee;
-            vertical-align: top;
+        .task-status{
+            display:inline-block;
+            padding:6px 12px;
+            border-radius:999px;
+            background:#e0e7ff;
+            color:#4338ca;
+            font-size:13px;
+            font-weight:bold;
+            margin-bottom:14px;
         }
 
-        .badge {
-            display: inline-block;
-            padding: 6px 10px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: bold;
+        .task-memo{
+            color:#64748b;
+            margin-bottom:14px;
+            line-height:1.5;
+            white-space:pre-wrap;
         }
 
-        .badge-done {
-            background: #dcfce7;
-            color: #166534;
+        .progress-bar{
+            width:100%;
+            height:10px;
+            background:#e5e7eb;
+            border-radius:999px;
+            overflow:hidden;
+            margin-bottom:10px;
         }
 
-        .badge-progress {
-            background: #dbeafe;
-            color: #1d4ed8;
+        .progress-fill{
+            height:100%;
+            background:#4f46e5;
         }
 
-        .badge-wait {
-            background: #f1f5f9;
-            color: #475569;
+        .task-progress{
+            font-size:13px;
+            margin-bottom:12px;
         }
 
-        .memo {
-            max-width: 320px;
-            white-space: pre-wrap;
-            color: #475569;
-            font-size: 14px;
-        }
+        @media(max-width:1000px){
 
-        .file-link {
-            color: #4f46e5;
-            font-weight: bold;
-            text-decoration: none;
-        }
-
-        .file-link:hover {
-            text-decoration: underline;
-        }
-
-        .edit-btn,
-        .delete-btn {
-            display: inline-block;
-            padding: 7px 10px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-size: 13px;
-            font-weight: bold;
-            margin-right: 6px;
-            margin-bottom: 6px;
-        }
-
-        .edit-btn {
-            background: #eef2ff;
-            color: #4338ca;
-        }
-
-        .delete-btn {
-            background: #fee2e2;
-            color: #b91c1c;
-        }
-
-        @media(max-width: 1000px) {
-            .sidebar {
-                position: relative;
-                width: 100%;
-                height: auto;
+            .layout{
+                flex-direction:column;
             }
 
-            .content {
-                margin-left: 0;
+            .sidebar{
+                position:relative;
+                width:100%;
+                height:auto;
             }
 
-            .layout {
-                flex-direction: column;
+            .content{
+                margin-left:0;
+                padding:18px;
             }
 
-            .search-form {
-                grid-template-columns: 1fr;
+            .sidebar-menu{
+                display:grid;
+                grid-template-columns:repeat(2,1fr);
+            }
+
+            .sidebar-item{
+                text-align:center;
+            }
+        }
+
+        @media(max-width:520px){
+
+            .sidebar-menu{
+                grid-template-columns:1fr;
+            }
+
+            .page-title{
+                font-size:24px;
+            }
+
+            .search-row{
+                flex-direction:column;
             }
         }
     </style>
@@ -275,138 +261,151 @@
 
     <aside class="sidebar">
 
-        <div class="sidebar-title">🚀 Dashboard</div>
+        <div class="sidebar-title">
+            🚀 Dashboard
+        </div>
 
         <div class="user-box">
+
             <div class="user-name">
                 {{ request.user.username }}
             </div>
 
             <div class="user-role">
+
                 {% if request.user.is_superuser %}
                     슈퍼관리자
+
                 {% elif request.user.is_staff %}
                     직원 계정
+
                 {% else %}
                     일반 회원
+
                 {% endif %}
+
             </div>
+
         </div>
 
         <div class="sidebar-menu">
-            <a href="/" class="sidebar-item">📊 대시보드</a>
-            <a href="/projects/" class="sidebar-item">📁 프로젝트</a>
-            <a href="/tasks/" class="sidebar-item active">✅ 작업 리스트</a>
-            <a href="/stats/" class="sidebar-item">📈 통계</a>
-            <a href="/settings/" class="sidebar-item">⚙ 설정</a>
+
+            <a href="/" class="sidebar-item">
+                📊 대시보드
+            </a>
+
+            <a href="/projects/" class="sidebar-item">
+                📁 프로젝트
+            </a>
+
+            <a href="/tasks/" class="sidebar-item active">
+                ✅ 작업 리스트
+            </a>
+
+            <a href="/stats/" class="sidebar-item">
+                📈 통계
+            </a>
+
+            <a href="/messages/" class="sidebar-item">
+                💬 메신저
+
+                {% if unread_message_count > 0 %}
+                <span class="message-badge">
+                    {{ unread_message_count }}
+                </span>
+                {% endif %}
+            </a>
+
+            <a href="/settings/" class="sidebar-item">
+                ⚙ 설정
+            </a>
 
             {% if request.user.is_superuser %}
-            <a href="/admin/" class="sidebar-item">👑 관리자 페이지</a>
+            <a href="/admin/" class="sidebar-item">
+                👑 관리자 페이지
+            </a>
             {% endif %}
 
             <a href="{% url 'logout' %}" class="sidebar-item logout-btn">
                 🚪 로그아웃
             </a>
+
         </div>
 
     </aside>
 
     <main class="content">
 
-        <div class="page-title">작업 전체 목록</div>
+        <div class="page-title">
+            작업 리스트
+        </div>
 
-        <div class="card">
+        <div class="search-form">
 
-            <form method="get" class="search-form">
-                <div>
-                    <label>검색</label>
+            <form method="get">
+
+                <div class="search-row">
+
                     <input
                         type="text"
                         name="q"
-                        class="form-input"
-                        placeholder="작업명, 메모, 프로젝트명 검색"
+                        class="search-input"
+                        placeholder="작업명, 프로젝트 검색..."
                         value="{{ search_query }}"
                     >
+
+                    <button type="submit" class="search-btn">
+                        검색
+                    </button>
+
                 </div>
 
-                <button type="submit" class="search-btn">검색</button>
-                <a href="/tasks/" class="reset-btn">초기화</a>
             </form>
 
-            <p style="margin-bottom: 18px; color: #64748b;">
-                총 {{ total_tasks }}개의 작업이 있습니다.
-            </p>
+        </div>
 
-            <div class="table-scroll">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>프로젝트</th>
-                            <th>작업명</th>
-                            <th>상태</th>
-                            <th>진행률</th>
-                            <th>메모</th>
-                            <th>파일</th>
-                            <th>관리</th>
-                        </tr>
-                    </thead>
+        <div class="task-grid">
 
-                    <tbody>
-                        {% for task in tasks %}
-                        <tr>
-                            <td>
-                                {% if task.project %}
-                                    {{ task.project.name }}
-                                {% else %}
-                                    미지정
-                                {% endif %}
-                            </td>
+            {% for task in tasks %}
 
-                            <td>{{ task.name }}</td>
+            <div class="task-card">
 
-                            <td>
-                                {% if task.status == "완료" %}
-                                    <span class="badge badge-done">{{ task.status }}</span>
-                                {% elif task.status == "진행 중" %}
-                                    <span class="badge badge-progress">{{ task.status }}</span>
-                                {% else %}
-                                    <span class="badge badge-wait">{{ task.status }}</span>
-                                {% endif %}
-                            </td>
+                <div class="task-title">
+                    {{ task.name }}
+                </div>
 
-                            <td>{{ task.progress }}%</td>
+                {% if task.project %}
+                <div class="task-project">
+                    📁 {{ task.project.name }}
+                </div>
+                {% endif %}
 
-                            <td class="memo">
-                                {% if task.memo %}
-                                    {{ task.memo }}
-                                {% else %}
-                                    -
-                                {% endif %}
-                            </td>
+                <div class="task-status">
+                    {{ task.status }}
+                </div>
 
-                            <td>
-                                {% if task.attachment %}
-                                    <a href="{{ task.attachment.url }}" target="_blank" class="file-link">
-                                        📎 파일 보기
-                                    </a>
-                                {% else %}
-                                    -
-                                {% endif %}
-                            </td>
+                <div class="task-memo">
+                    {{ task.memo }}
+                </div>
 
-                            <td>
-                                <a href="{% url 'edit_task' task.id %}" class="edit-btn">수정</a>
-                                <a href="{% url 'delete_task' task.id %}" class="delete-btn">삭제</a>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="7">작업이 없습니다.</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                <div class="progress-bar">
+                    <div
+                        class="progress-fill"
+                        style="width: {{ task.progress }}%;"
+                    ></div>
+                </div>
+
+                <div class="task-progress">
+                    진행률 {{ task.progress }}%
+                </div>
+
             </div>
+
+            {% empty %}
+
+            <p>작업이 없습니다.</p>
+
+            {% endfor %}
 
         </div>
 
